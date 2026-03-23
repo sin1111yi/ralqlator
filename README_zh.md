@@ -1,10 +1,11 @@
 # Ralqlator
 
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)]()
-[![License](https://img.shields.io/badge/license-MIT-blue)]()
-[![Rust](https://img.shields.io/badge/rust-2021-orange)]()
+[![Build Status](https://img.shields.io/badge/test-passing-brightgreen)]()
+[![License](https://img.shields.io/badge/license-GPLV3-blue)]()
+[![Rust](https://img.shields.io/badge/rust-2026-orange)]()
 
-> **AI 生成项目**: 本项目完全由 **Qwen3.5-plus**（阿里巴巴通义千问大语言模型）生成。
+> **AI 生成项目**: 本项目完全由 **qwen3.5-plus**（阿里巴巴通义千问大语言模型）生成。
 
 一个用 Rust 编写的强大命令行计算器。
 
@@ -25,16 +26,16 @@
 
 ```bash
 git clone <repository-url>
-cd raculator
+cd ralqlator
 cargo build --release
 ```
 
-二进制文件位于 `target/release/raculator`。
+二进制文件位于 `target/release/ralqlator`。
 
 ### 使用 Cargo 安装
 
 ```bash
-cargo install raculator
+cargo install ralqlator
 ```
 
 ## 使用方法
@@ -43,29 +44,29 @@ cargo install raculator
 
 ```bash
 # 基本计算
-raculator "1 + 2 * 3"              # 输出：7
+ralqlator "1 + 2 * 3"              # 输出：7
 
 # 使用函数
-raculator "lg(100)"                # 输出：2
-raculator "sin(pi / 2)"            # 输出：1
+ralqlator "lg(100)"                # 输出：2
+ralqlator "sin(pi / 2)"            # 输出：1
 
 # 位运算
-raculator -B "12 & 10"             # 输出：8
-raculator -B "0xFF & 0x0F"         # 输出：15
+ralqlator -B "12 & 10"             # 输出：8
+ralqlator -B "0xFF & 0x0F"         # 输出：15
 
 # 输出格式转换
-raculator -x "255"                 # 输出：0xFF
-raculator -o "255"                 # 输出：0o377
-raculator -b "255"                 # 输出：0b11111111
+ralqlator -x "255"                 # 输出：0xFF
+ralqlator -o "255"                 # 输出：0o377
+ralqlator -b "255"                 # 输出：0b11111111
 
 # 组合选项
-raculator -Bx "0xFF & 0x0F"        # 输出：0xF
+ralqlator -Bx "0xFF & 0x0F"        # 输出：0xF
 ```
 
 ### 交互模式
 
 ```bash
-raculator
+ralqlator
 ```
 
 交互模式下：
@@ -87,7 +88,7 @@ raculator
 ### 位运算交互模式
 
 ```bash
-raculator -B
+ralqlator -B
 ```
 
 ## 运算符
@@ -154,14 +155,14 @@ raculator -B
 
 | 选项 | 说明 | 示例 |
 |------|------|------|
-| `-x`, `--hex` | 十六进制输出 | `raculator -x "255"` → `0xFF` |
-| `-o`, `--oct` | 八进制输出 | `raculator -o "255"` → `0o377` |
-| `-b`, `--bin` | 二进制输出 | `raculator -b "255"` → `0b11111111` |
+| `-x`, `--hex` | 十六进制输出 | `ralqlator -x "255"` → `0xFF` |
+| `-o`, `--oct` | 八进制输出 | `ralqlator -o "255"` → `0o377` |
+| `-b`, `--bin` | 二进制输出 | `ralqlator -b "255"` → `0b11111111` |
 
 ## 命令行选项
 
 ```
-Usage: raculator [OPTIONS] [EXPRESSION] [COMMAND]
+Usage: ralqlator [OPTIONS] [EXPRESSION] [COMMAND]
 
 Arguments:
   [EXPRESSION]  要计算的表达式
@@ -197,7 +198,7 @@ cargo test
 ## 项目结构
 
 ```
-raculator/
+ralqlator/
 ├── Cargo.toml              # 项目配置
 ├── agent.md                # AI 助手英文文档
 ├── agent_zh.md             # AI 助手中文文档
@@ -219,23 +220,23 @@ raculator/
 
 ```bash
 # 复杂表达式
-raculator "sqrt(pow(3, 2) + pow(4, 2))"    # 输出：5
+ralqlator "sqrt(pow(3, 2) + pow(4, 2))"    # 输出：5
 
 # 科学记数法
-raculator "1e3 + 2.5e-3"                   # 输出：1000.0025
+ralqlator "1e3 + 2.5e-3"                   # 输出：1000.0025
 
 # 混合格式
-raculator "0xFF + 0b1010"                  # 输出：265
+ralqlator "0xFF + 0b1010"                  # 输出：265
 
 # 三角恒等式
-raculator "sin(pi / 2) + cos(0)"           # 输出：2
+ralqlator "sin(pi / 2) + cos(0)"           # 输出：2
 
 # 对数
-raculator "lg(1000)"                       # 输出：3
-raculator "log(8, 2)"                      # 输出：3
+ralqlator "lg(1000)"                       # 输出：3
+ralqlator "log(8, 2)"                      # 输出：3
 
 # 位运算带格式输出
-raculator -Bb "8 << 2"                     # 输出：0b100000
+ralqlator -Bb "8 << 2"                     # 输出：0b100000
 ```
 
 ## 许可证
