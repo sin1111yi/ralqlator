@@ -1,0 +1,229 @@
+//! REPL (Read-Eval-Print Loop) module
+//!
+//! Provides interactive calculator modes for both standard and bitwise operations.
+
+use std::sync::{Arc, Mutex};
+
+use rustyline::{DefaultEditor, Event, KeyCode, KeyEvent, Modifiers};
+
+use crate::calculator::{calculate, calculate_bitwise};
+
+/// Shared state for last result (standard mode - f64)
+pub struct LastResult {
+    value: Mutex<Option<f64>>,
+}
+
+impl LastResult {
+    pub fn new() -> Self {
+        LastResult {
+            value: Mutex::new(None),
+        }
+    }
+
+    pub fn set(&self, val: f64) {
+        *self.value.lock().unwrap() = Some(val);
+    }
+
+    pub fn get(&self) -> Option<f64> {
+        *self.value.lock().unwrap()
+    }
+}
+
+/// Shared state for last result (bitwise mode - i64)
+pub struct LastResultI64 {
+    value: Mutex<Option<i64>>,
+}
+
+impl LastResultI64 {
+    pub fn new() -> Self {
+        LastResultI64 {
+            value: Mutex::new(None),
+        }
+    }
+
+    pub fn set(&self, val: i64) {
+        *self.value.lock().unwrap() = Some(val);
+    }
+
+    pub fn get(&self) -> Option<i64> {
+        *self.value.lock().unwrap()
+    }
+}
+
+/// Run interactive REPL mode (standard mode)
+pub fn run_repl() {
+    println!("Type 'q' or 'quit' to exit");
+    println!("- Alt+G: insert last result");
+    println!("- @: insert last result");
+    println!("- hex/oct/bin: show last result in different formats\n");
+
+    let mut rl = DefaultEditor::new().expect("Failed to create readline editor");
+    let last_result = Arc::new(LastResult::new());
+
+    // Bind Alt+G to insert last result
+    rl.bind_sequence(
+        Event::from(KeyEvent(KeyCode::Char('g'), Modifiers::ALT)),
+        rustyline::Cmd::Insert(1, "__LAST_RESULT__".to_string()),
+    );
+
+    loop {
+        let Ok(input) = rl.readline("> ") else {
+            break;
+        };
+        rl.add_history_entry(input.as_str()).unwrap();
+
+        let input_lower = input.trim().to_lowercase();
+
+        // Handle format conversion commands
+        if matches!(input_lower.as_str(), "hex" | "oct" | "bin") {
+            if let Some(val) = last_result.get() {
+                if val.fract() == 0.0 && val.abs() < 1e15 {
+                    print_formatted(val as i64, input_lower.as_str());
+                } else {
+                    eprintln!("Error: format conversion only supports integer results");
+                }
+            } else {
+                eprintln!("No previous result available");
+            }
+            continue;
+        }
+
+        // Replace placeholders
+        let processed = match replace_placeholders(&input, last_result.get()) {
+            Some(s) => s,
+            None => continue,
+        };
+
+        let processed = processed.trim();
+
+        if processed.is_empty() {
+            continue;
+        }
+
+        if processed.eq_ignore_ascii_case("q") || processed.eq_ignore_ascii_case("quit") {
+            break;
+        }
+
+        match calculate(processed) {
+            Ok(result) => {
+                last_result.set(result);
+                println!("= {}", result);
+            }
+            Err(e) => {
+                eprintln!("Error: {}", e);
+            }
+        }
+    }
+}
+
+/// Run interactive REPL mode (bitwise mode)
+pub fn run_repl_bitwise() {
+    println!("Bitwise mode - Type 'q' or 'quit' to exit");
+    println!("Operators: & (AND), | (OR), ^ (XOR), ~ (NOT), << (left shift), >> (right shift)");
+    println!("- Alt+G: insert last result");
+    println!("- @: insert last result");
+    println!("- hex/oct/bin: show last result in different formats\n");
+
+    let mut rl = DefaultEditor::new().expect("Failed to create readline editor");
+    let last_result = Arc::new(LastResultI64::new());
+
+    // Bind Alt+G to insert last result
+    rl.bind_sequence(
+        Event::from(KeyEvent(KeyCode::Char('g'), Modifiers::ALT)),
+        rustyline::Cmd::Insert(1, "__LAST_RESULT__".to_string()),
+    );
+
+    loop {
+        let Ok(input) = rl.readline("> ") else {
+            break;
+        };
+        rl.add_history_entry(input.as_str()).unwrap();
+
+        let input_lower = input.trim().to_lowercase();
+
+        // Handle format conversion commands
+        if matches!(input_lower.as_str(), "hex" | "oct" | "bin") {
+            if let Some(val) = last_result.get() {
+                print_formatted(val, input_lower.as_str());
+            } else {
+                eprintln!("No previous result available");
+            }
+            continue;
+        }
+
+        // Replace placeholders
+        let processed = match replace_placeholders(&input, last_result.get()) {
+            Some(s) => s,
+            None => continue,
+        };
+
+        let processed = processed.trim();
+
+        if processed.is_empty() {
+            continue;
+        }
+
+        if processed.eq_ignore_ascii_case("q") || processed.eq_ignore_ascii_case("quit") {
+            break;
+        }
+
+        match calculate_bitwise(processed) {
+            Ok(result) => {
+                last_result.set(result);
+                println!("= {}", result);
+            }
+            Err(e) => {
+                eprintln!("Error: {}", e);
+            }
+        }
+    }
+}
+
+/// Print value in specified format
+fn print_formatted(val: i64, format: &str) {
+    match format {
+        "hex" => {
+            if val < 0 {
+                println!("= -0x{:X}", val.unsigned_abs());
+            } else {
+                println!("= 0x{:X}", val as u64);
+            }
+        }
+        "oct" => {
+            if val < 0 {
+                println!("= -0o{:o}", val.unsigned_abs());
+            } else {
+                println!("= 0o{:o}", val as u64);
+            }
+        }
+        "bin" => {
+            if val < 0 {
+                println!("= -0b{:b}", val.unsigned_abs());
+            } else {
+                println!("= 0b{:b}", val as u64);
+            }
+        }
+        _ => {}
+    }
+}
+
+/// Replace __LAST_RESULT__ and @ placeholders with actual value
+fn replace_placeholders<T: Copy + std::fmt::Display>(
+    input: &str,
+    last_value: Option<T>,
+) -> Option<String> {
+    if input.contains("__LAST_RESULT__") || input.contains('@') {
+        if let Some(val) = last_value {
+            Some(
+                input
+                    .replace("__LAST_RESULT__", &val.to_string())
+                    .replace('@', &val.to_string()),
+            )
+        } else {
+            eprintln!("No previous result available");
+            None
+        }
+    } else {
+        Some(input.to_string())
+    }
+}

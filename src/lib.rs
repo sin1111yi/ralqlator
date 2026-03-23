@@ -1,0 +1,417 @@
+//! Raculator - A command line calculator
+//!
+//! Supports standard arithmetic and bitwise operations with multiple number formats.
+
+mod calculator;
+mod cli;
+mod evaluator;
+mod functions;
+mod linked_list;
+mod operator;
+mod repl;
+mod shunting_yard;
+mod token;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // ==================== Basic Arithmetic Tests ====================
+
+    #[test]
+    fn test_addition() {
+        assert_eq!(calculator::calculate("1 + 2").unwrap(), 3.0);
+        assert_eq!(calculator::calculate("10 + 20").unwrap(), 30.0);
+        assert_eq!(calculator::calculate("-5 + 3").unwrap(), -2.0);
+    }
+
+    #[test]
+    fn test_subtraction() {
+        assert_eq!(calculator::calculate("10 - 3").unwrap(), 7.0);
+        assert_eq!(calculator::calculate("5 - 10").unwrap(), -5.0);
+    }
+
+    #[test]
+    fn test_multiplication() {
+        assert_eq!(calculator::calculate("3 * 4").unwrap(), 12.0);
+        assert_eq!(calculator::calculate("-2 * 3").unwrap(), -6.0);
+    }
+
+    #[test]
+    fn test_division() {
+        assert_eq!(calculator::calculate("10 / 2").unwrap(), 5.0);
+        assert_eq!(calculator::calculate("7 / 2").unwrap(), 3.5);
+    }
+
+    #[test]
+    fn test_division_by_zero() {
+        assert!(calculator::calculate("10 / 0").is_err());
+    }
+
+    #[test]
+    fn test_modulo() {
+        assert_eq!(calculator::calculate("10 % 3").unwrap(), 1.0);
+        assert_eq!(calculator::calculate("17 % 5").unwrap(), 2.0);
+    }
+
+    #[test]
+    fn test_modulo_by_zero() {
+        assert!(calculator::calculate("10 % 0").is_err());
+    }
+
+    #[test]
+    fn test_exponentiation() {
+        assert_eq!(calculator::calculate("2 ^ 3").unwrap(), 8.0);
+        assert_eq!(calculator::calculate("2 ^ 10").unwrap(), 1024.0);
+    }
+
+    #[test]
+    fn test_operator_precedence() {
+        assert_eq!(calculator::calculate("1 + 2 * 3").unwrap(), 7.0);
+        assert_eq!(calculator::calculate("(1 + 2) * 3").unwrap(), 9.0);
+        assert_eq!(calculator::calculate("2 + 3 * 4 - 5").unwrap(), 9.0);
+    }
+
+    // ==================== Number Format Tests ====================
+
+    #[test]
+    fn test_binary_input() {
+        assert_eq!(calculator::calculate("0b1010").unwrap(), 10.0);
+        assert_eq!(calculator::calculate("0b11111111").unwrap(), 255.0);
+    }
+
+    #[test]
+    fn test_octal_input() {
+        assert_eq!(calculator::calculate("0o755").unwrap(), 493.0);
+        assert_eq!(calculator::calculate("0o10").unwrap(), 8.0);
+    }
+
+    #[test]
+    fn test_hexadecimal_input() {
+        assert_eq!(calculator::calculate("0xFF").unwrap(), 255.0);
+        assert_eq!(calculator::calculate("0x10").unwrap(), 16.0);
+        assert_eq!(calculator::calculate("0x1A").unwrap(), 26.0);
+    }
+
+    #[test]
+    fn test_scientific_notation() {
+        assert_eq!(calculator::calculate("1e3").unwrap(), 1000.0);
+        assert_eq!(calculator::calculate("2.5e-3").unwrap(), 0.0025);
+        assert_eq!(calculator::calculate("1.23E+10").unwrap(), 12300000000.0);
+    }
+
+    // ==================== Constants Tests ====================
+
+    #[test]
+    fn test_pi_constant() {
+        let result = calculator::calculate("pi").unwrap();
+        assert!((result - std::f64::consts::PI).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_e_constant() {
+        let result = calculator::calculate("e").unwrap();
+        assert!((result - std::f64::consts::E).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_pi_case_insensitive() {
+        assert_eq!(calculator::calculate("pi").unwrap(), calculator::calculate("PI").unwrap());
+    }
+
+    // ==================== Function Tests ====================
+
+    #[test]
+    fn test_lg_base10() {
+        assert_eq!(calculator::calculate("lg(100)").unwrap(), 2.0);
+        assert_eq!(calculator::calculate("lg(1000)").unwrap(), 3.0);
+    }
+
+    #[test]
+    fn test_lg_custom_base() {
+        assert_eq!(calculator::calculate("lg(8, 2)").unwrap(), 3.0);
+        assert_eq!(calculator::calculate("lg(1024, 2)").unwrap(), 10.0);
+    }
+
+    #[test]
+    fn test_log_custom_base() {
+        assert_eq!(calculator::calculate("log(8, 2)").unwrap(), 3.0);
+        assert_eq!(calculator::calculate("log(27, 3)").unwrap(), 3.0);
+    }
+
+    #[test]
+    fn test_ln() {
+        let result = calculator::calculate("ln(e)").unwrap();
+        assert!((result - 1.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_sqrt() {
+        assert_eq!(calculator::calculate("sqrt(16)").unwrap(), 4.0);
+        assert_eq!(calculator::calculate("sqrt(2)").unwrap(), 2.0_f64.sqrt());
+    }
+
+    #[test]
+    fn test_pow() {
+        assert_eq!(calculator::calculate("pow(2, 10)").unwrap(), 1024.0);
+        assert_eq!(calculator::calculate("pow(3, 3)").unwrap(), 27.0);
+    }
+
+    #[test]
+    fn test_mod_function() {
+        assert_eq!(calculator::calculate("mod(10, 3)").unwrap(), 1.0);
+        assert_eq!(calculator::calculate("mod(17, 5)").unwrap(), 2.0);
+    }
+
+    // ==================== Trigonometric Tests ====================
+
+    #[test]
+    fn test_sin() {
+        assert!(calculator::calculate("sin(0)").unwrap().abs() < 1e-10);
+        assert!((calculator::calculate("sin(pi / 2)").unwrap() - 1.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_cos() {
+        assert_eq!(calculator::calculate("cos(0)").unwrap(), 1.0);
+        assert!(calculator::calculate("cos(pi)").unwrap().abs() - 1.0 < 1e-10);
+    }
+
+    #[test]
+    fn test_tan() {
+        assert!(calculator::calculate("tan(0)").unwrap().abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_asin() {
+        let result = calculator::calculate("asin(1)").unwrap();
+        assert!((result - std::f64::consts::PI / 2.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_acos() {
+        let result = calculator::calculate("acos(1)").unwrap();
+        assert!(result.abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_atan() {
+        let result = calculator::calculate("atan(1)").unwrap();
+        assert!((result - std::f64::consts::PI / 4.0).abs() < 1e-10);
+    }
+
+    // ==================== Bitwise Tests ====================
+
+    #[test]
+    fn test_bitwise_and() {
+        assert_eq!(calculator::calculate_bitwise("12 & 10").unwrap(), 8);
+        assert_eq!(calculator::calculate_bitwise("0xFF & 0x0F").unwrap(), 0x0F);
+    }
+
+    #[test]
+    fn test_bitwise_or() {
+        assert_eq!(calculator::calculate_bitwise("12 | 10").unwrap(), 14);
+        assert_eq!(calculator::calculate_bitwise("0xF0 | 0x0F").unwrap(), 0xFF);
+    }
+
+    #[test]
+    fn test_bitwise_xor() {
+        assert_eq!(calculator::calculate_bitwise("12 ^ 10").unwrap(), 6);
+        assert_eq!(calculator::calculate_bitwise("0xFF ^ 0x0F").unwrap(), 0xF0);
+    }
+
+    #[test]
+    fn test_bitwise_not() {
+        assert_eq!(calculator::calculate_bitwise("~0").unwrap(), -1);
+        assert_eq!(calculator::calculate_bitwise("~12").unwrap(), -13);
+    }
+
+    #[test]
+    fn test_left_shift() {
+        assert_eq!(calculator::calculate_bitwise("8 << 2").unwrap(), 32);
+        assert_eq!(calculator::calculate_bitwise("1 << 10").unwrap(), 1024);
+    }
+
+    #[test]
+    fn test_right_shift() {
+        assert_eq!(calculator::calculate_bitwise("8 >> 2").unwrap(), 2);
+        assert_eq!(calculator::calculate_bitwise("1024 >> 10").unwrap(), 1);
+    }
+
+    #[test]
+    fn test_invalid_shift() {
+        assert!(calculator::calculate_bitwise("8 << 64").is_err());
+        assert!(calculator::calculate_bitwise("8 >> -1").is_err());
+    }
+
+    #[test]
+    fn test_bitwise_mixed_formats() {
+        assert_eq!(calculator::calculate_bitwise("0b1010 & 0xFF").unwrap(), 10);
+        assert_eq!(calculator::calculate_bitwise("0o10 | 0x0F").unwrap(), 15);
+    }
+
+    // ==================== Error Handling Tests ====================
+
+    #[test]
+    fn test_invalid_number() {
+        assert!(calculator::calculate("abc").is_err());
+    }
+
+    #[test]
+    fn test_invalid_function() {
+        assert!(calculator::calculate("invalid(1)").is_err());
+    }
+
+    #[test]
+    fn test_division_by_zero_error_message() {
+        let err = calculator::calculate("10 / 0").unwrap_err();
+        assert!(err.contains("Division by zero"));
+    }
+
+    #[test]
+    fn test_asin_domain_error() {
+        assert!(calculator::calculate("asin(2)").is_err());
+        assert!(calculator::calculate("asin(-2)").is_err());
+    }
+
+    #[test]
+    fn test_sqrt_negative_error() {
+        assert!(calculator::calculate("sqrt(-1)").is_err());
+    }
+
+    #[test]
+    fn test_ln_negative_error() {
+        assert!(calculator::calculate("ln(-1)").is_err());
+        assert!(calculator::calculate("ln(0)").is_err());
+    }
+
+    // ==================== Tokenizer Tests ====================
+
+    #[test]
+    fn test_tokenize_simple() {
+        let tokens = token::tokenize("1 + 2", false);
+        assert_eq!(tokens, vec!["1", "+", "2"]);
+    }
+
+    #[test]
+    fn test_tokenize_with_parentheses() {
+        let tokens = token::tokenize("(1 + 2) * 3", false);
+        assert_eq!(tokens, vec!["(", "1", "+", "2", ")", "*", "3"]);
+    }
+
+    #[test]
+    fn test_tokenize_function() {
+        let tokens = token::tokenize("sin(pi)", false);
+        assert_eq!(tokens, vec!["sin", "(", "pi", ")"]);
+    }
+
+    #[test]
+    fn test_tokenize_bitwise() {
+        let tokens = token::tokenize("12 & 10", true);
+        assert_eq!(tokens, vec!["12", "&", "10"]);
+    }
+
+    #[test]
+    fn test_tokenize_shift() {
+        let tokens = token::tokenize("8 << 2", true);
+        assert_eq!(tokens, vec!["8", "<<", "2"]);
+    }
+
+    // ==================== Shunting Yard Tests ====================
+
+    #[test]
+    fn test_infix_to_postfix_simple() {
+        let tokens = vec!["1".to_string(), "+".to_string(), "2".to_string()];
+        let postfix = shunting_yard::infix_to_postfix(tokens);
+        assert_eq!(postfix, vec!["1", "2", "+"]);
+    }
+
+    #[test]
+    fn test_infix_to_postfix_precedence() {
+        let tokens = vec!["1".to_string(), "+".to_string(), "2".to_string(), "*".to_string(), "3".to_string()];
+        let postfix = shunting_yard::infix_to_postfix(tokens);
+        assert_eq!(postfix, vec!["1", "2", "3", "*", "+"]);
+    }
+
+    #[test]
+    fn test_infix_to_postfix_parentheses() {
+        let tokens = vec!["(".to_string(), "1".to_string(), "+".to_string(), "2".to_string(), ")".to_string(), "*".to_string(), "3".to_string()];
+        let postfix = shunting_yard::infix_to_postfix(tokens);
+        assert_eq!(postfix, vec!["1", "2", "+", "3", "*"]);
+    }
+
+    // ==================== Linked List Tests ====================
+
+    #[test]
+    fn test_linked_list_push() {
+        let mut list = linked_list::LinkedList::new();
+        list.push_back("1".to_string());
+        list.push_back("2".to_string());
+        list.push_back("3".to_string());
+        assert_eq!(list.to_vec(), vec!["1", "2", "3"]);
+    }
+
+    #[test]
+    fn test_linked_list_empty() {
+        let list = linked_list::LinkedList::new();
+        assert_eq!(list.to_vec(), Vec::<String>::new());
+    }
+
+    // ==================== Output Format Tests ====================
+
+    #[test]
+    fn test_negative_hex_output() {
+        // Test the format logic directly
+        let val: i64 = -255;
+        let hex = format!("-0x{:X}", val.unsigned_abs());
+        assert_eq!(hex, "-0xFF");
+    }
+
+    #[test]
+    fn test_negative_octal_output() {
+        let val: i64 = -64;
+        let oct = format!("-0o{:o}", val.unsigned_abs());
+        assert_eq!(oct, "-0o100");
+    }
+
+    #[test]
+    fn test_negative_binary_output() {
+        let val: i64 = -8;
+        let bin = format!("-0b{:b}", val.unsigned_abs());
+        assert_eq!(bin, "-0b1000");
+    }
+
+    // ==================== Integration Tests ====================
+
+    #[test]
+    fn test_complex_expression() {
+        let result = calculator::calculate("sin(pi / 2) + cos(0)").unwrap();
+        assert!((result - 2.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_nested_functions() {
+        let result = calculator::calculate("sqrt(pow(3, 2) + pow(4, 2))").unwrap();
+        assert!((result - 5.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_log_with_pi() {
+        let result = calculator::calculate("lg(pi * 10)").unwrap();
+        let expected = (std::f64::consts::PI * 10.0).log10();
+        assert!((result - expected).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_bitwise_complex() {
+        let result = calculator::calculate_bitwise("(0xFF & 0xF0) | (0x0F & 0x0F)").unwrap();
+        assert_eq!(result, 0xFF);
+    }
+
+    #[test]
+    fn test_mixed_arithmetic_bitwise() {
+        // Standard mode with hex input
+        let result = calculator::calculate("0xFF + 1").unwrap();
+        assert_eq!(result, 256.0);
+    }
+}
