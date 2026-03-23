@@ -1,8 +1,10 @@
-# Raculator
+# Ralqlator
 
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)]()
 [![License](https://img.shields.io/badge/license-MIT-blue)]()
 [![Rust](https://img.shields.io/badge/rust-2021-orange)]()
+
+> **AI 生成项目**: 本项目完全由 **Qwen3.5-plus**（阿里巴巴通义千问大语言模型）生成。
 
 一个用 Rust 编写的强大命令行计算器。
 
