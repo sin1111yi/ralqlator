@@ -33,47 +33,80 @@ use std::process;
 use clap::Parser;
 use cli::Cli;
 
-/// Print help information for functions and features
-fn print_help() {
-    println!("Supported operators:");
-    println!("  +  -  *  /  %  ^");
+/// Print help for mathematical functions
+fn print_functions_help() {
+    println!("Mathematical Functions:");
     println!();
-    println!("Supported functions:");
-    println!("  lg(x)         - Base 10 logarithm");
-    println!("  log(x, base)  - Custom base logarithm");
-    println!("  ln(x)         - Natural logarithm (base e)");
-    println!("  sqrt(x)       - Square root");
-    println!("  pow(x, y)     - Power function (x^y)");
-    println!("  sin(x)        - Sine (radians)");
-    println!("  cos(x)        - Cosine (radians)");
-    println!("  tan(x)        - Tangent (radians)");
-    println!("  asin(x)       - Inverse sine (radians)");
-    println!("  acos(x)       - Inverse cosine (radians)");
-    println!("  atan(x)       - Inverse tangent (radians)");
-    println!("  mod(a, b)     - Modulo (a % b)");
+    println!("  lg(x)              Base-10 logarithm");
+    println!("  lg(x, base)        Custom base logarithm");
+    println!("  log(x, base)       Custom base logarithm (alias)");
+    println!("  ln(x)              Natural logarithm (base e)");
+    println!("  sqrt(x)            Square root");
+    println!("  pow(x, y)          Power function (x^y)");
+    println!("  sin(x)             Sine (x in radians)");
+    println!("  cos(x)             Cosine (x in radians)");
+    println!("  tan(x)             Tangent (x in radians)");
+    println!("  asin(x)            Inverse sine (result in radians)");
+    println!("  acos(x)            Inverse cosine (result in radians)");
+    println!("  atan(x)            Inverse tangent (result in radians)");
+    println!("  mod(a, b)          Modulo (a % b)");
+}
+
+/// Print help for operators
+fn print_operators_help() {
+    println!("Operators:");
     println!();
-    println!("Constants:");
-    println!("  pi, PI        - π ≈ 3.14159");
-    println!("  e, E          - e ≈ 2.71828 (Euler's number)");
+    println!("  Standard Operators:");
+    println!("    +    Addition           3 + 2 = 5");
+    println!("    -    Subtraction        5 - 2 = 3");
+    println!("    *    Multiplication     3 * 4 = 12");
+    println!("    /    Division          10 / 2 = 5");
+    println!("    %    Modulo            10 % 3 = 1");
+    println!("    ^    Exponentiation     2 ^ 3 = 8");
     println!();
-    println!("Number formats:");
-    println!("  Decimal:      123, -456, 3.14");
-    println!("  Binary:       0b1010, -0b1100");
-    println!("  Octal:        0o755, -0o123");
-    println!("  Hexadecimal:  0xFF, -0x1A");
+    println!("  Bitwise Operators (use -B flag):");
+    println!("    &    AND               12 & 10 = 8");
+    println!("    |    OR                12 | 10 = 14");
+    println!("    ^    XOR               12 ^ 10 = 6");
+    println!("    ~    NOT               ~0 = -1");
+    println!("    <<   Left shift        8 << 2 = 32");
+    println!("    >>   Right shift       8 >> 2 = 2");
+}
+
+/// Print help for number formats
+fn print_formats_help() {
+    println!("Number Formats:");
     println!();
-    println!("Bitwise mode (-B, --bits):");
-    println!("  &   - Bitwise AND");
-    println!("  |   - Bitwise OR");
-    println!("  ^   - Bitwise XOR");
-    println!("  ~   - Bitwise NOT");
-    println!("  <<  - Left shift");
-    println!("  >>  - Right shift");
+    println!("  Input Formats:");
+    println!("    Decimal     255, -456, 3.14");
+    println!("    Binary      0b1010, 0b11111111");
+    println!("    Octal       0o755, 0o377");
+    println!("    Hexadecimal 0xFF, 0x1A");
+    println!("    Scientific  1e3, 2.5e-3, 1.23E+10");
     println!();
-    println!("Output formats:");
-    println!("  -x, --hex     Hexadecimal output");
-    println!("  -o, --oct     Octal output");
-    println!("  -b, --bin     Binary output");
+    println!("  Output Format Options:");
+    println!("    -x, --hex   Hexadecimal output  (e.g., 0xFF)");
+    println!("    -o, --oct   Octal output        (e.g., 0o377)");
+    println!("    -b, --bin   Binary output       (e.g., 0b11111111)");
+}
+
+/// Print help for constants
+fn print_constants_help() {
+    println!("Mathematical Constants:");
+    println!();
+    println!("  pi, PI    π ≈ 3.141592653589793  (ratio of circumference to diameter)");
+    println!("  e, E      e ≈ 2.718281828459045  (Euler's number, natural log base)");
+}
+
+/// Print all help information
+fn print_all_help() {
+    print_operators_help();
+    println!();
+    print_functions_help();
+    println!();
+    print_constants_help();
+    println!();
+    print_formats_help();
 }
 
 /// Format and print result based on output format flags
@@ -141,9 +174,49 @@ fn print_bitwise_result(result: i64, hex: bool, oct: bool, bin: bool) {
 fn main() {
     let cli = Cli::parse();
 
-    // Handle help display
-    if cli.show_functions || matches!(cli.command, Some(cli::Commands::Functions)) {
-        print_help();
+    // Handle help display commands
+    match cli.command {
+        Some(cli::Commands::Functions) => {
+            print_functions_help();
+            return;
+        }
+        Some(cli::Commands::Operators) => {
+            print_operators_help();
+            return;
+        }
+        Some(cli::Commands::Formats) => {
+            print_formats_help();
+            return;
+        }
+        Some(cli::Commands::Constants) => {
+            print_constants_help();
+            return;
+        }
+        Some(cli::Commands::Info) => {
+            print_all_help();
+            return;
+        }
+        None => {}
+    }
+
+    // Handle flag-based help
+    if cli.show_functions {
+        print_functions_help();
+        return;
+    }
+
+    if cli.show_operators {
+        print_operators_help();
+        return;
+    }
+
+    if cli.show_formats {
+        print_formats_help();
+        return;
+    }
+
+    if cli.show_constants {
+        print_constants_help();
         return;
     }
 

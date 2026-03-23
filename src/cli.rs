@@ -22,17 +22,19 @@ use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
 #[command(name = "ralqlator")]
-#[command(about = "A command line calculator", long_about = None)]
+#[command(about = "A powerful command-line calculator")]
+#[command(long_about = "Ralqlator is a feature-rich calculator supporting arithmetic, \
+    bitwise operations, mathematical functions, and multiple number formats.")]
 pub struct Cli {
     #[command(subcommand)]
     pub command: Option<Commands>,
 
     /// Expression to calculate
-    #[arg()]
+    #[arg(value_name = "EXPR")]
     pub expression: Option<String>,
 
     /// Expression to calculate (shorthand)
-    #[arg(short = 'r', long = "row")]
+    #[arg(short = 'r', long = "row", value_name = "EXPR")]
     pub row: Option<String>,
 
     /// Output result in hexadecimal format
@@ -47,17 +49,37 @@ pub struct Cli {
     #[arg(short = 'b', long = "bin")]
     pub bin: bool,
 
-    /// Bitwise operation mode (use &, |, ^, ~, <<, >>)
+    /// Bitwise operation mode
     #[arg(short = 'B', long = "bits")]
     pub bits: bool,
 
-    /// Show supported functions
+    /// Show help for functions
     #[arg(short = 'F', long = "functions", action = clap::ArgAction::SetTrue)]
     pub show_functions: bool,
+
+    /// Show help for operators
+    #[arg(short = 'O', long = "operators", action = clap::ArgAction::SetTrue)]
+    pub show_operators: bool,
+
+    /// Show help for number formats
+    #[arg(short = 'N', long = "formats", action = clap::ArgAction::SetTrue)]
+    pub show_formats: bool,
+
+    /// Show help for constants
+    #[arg(short = 'C', long = "constants", action = clap::ArgAction::SetTrue)]
+    pub show_constants: bool,
 }
 
 #[derive(Subcommand)]
 pub enum Commands {
-    /// Show supported functions
+    /// Show supported mathematical functions
     Functions,
+    /// Show supported operators
+    Operators,
+    /// Show supported number formats
+    Formats,
+    /// Show mathematical constants
+    Constants,
+    /// Show all help information
+    Info,
 }
