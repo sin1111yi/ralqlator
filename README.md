@@ -1,0 +1,251 @@
+# Raculator
+
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)]()
+[![License](https://img.shields.io/badge/license-MIT-blue)]()
+[![Rust](https://img.shields.io/badge/rust-2021-orange)]()
+
+A powerful command-line calculator written in Rust.
+
+## Features
+
+- **Basic Arithmetic**: Addition, subtraction, multiplication, division, modulo, exponentiation
+- **Bitwise Operations**: AND, OR, XOR, NOT, left shift, right shift
+- **Mathematical Functions**: Logarithms, trigonometric functions, square root, power
+- **Multiple Number Formats**: Decimal, binary (0b), octal (0o), hexadecimal (0x)
+- **Scientific Notation**: Support for 1e3, 2.5e-3, etc.
+- **Output Format Conversion**: Display results in hex, octal, or binary
+- **Interactive REPL**: With history navigation and last result insertion
+- **Mathematical Constants**: π (pi) and e (Euler's number)
+
+## Installation
+
+### From Source
+
+```bash
+git clone <repository-url>
+cd raculator
+cargo build --release
+```
+
+The binary will be available at `target/release/raculator`.
+
+### Using Cargo
+
+```bash
+cargo install raculator
+```
+
+## Usage
+
+### Command Line Mode
+
+```bash
+# Basic calculation
+raculator "1 + 2 * 3"              # Output: 7
+
+# Using functions
+raculator "lg(100)"                # Output: 2
+raculator "sin(pi / 2)"            # Output: 1
+
+# Bitwise operations
+raculator -B "12 & 10"             # Output: 8
+raculator -B "0xFF & 0x0F"         # Output: 15
+
+# Output format conversion
+raculator -x "255"                 # Output: 0xFF
+raculator -o "255"                 # Output: 0o377
+raculator -b "255"                 # Output: 0b11111111
+
+# Combined options
+raculator -Bx "0xFF & 0x0F"        # Output: 0xF
+```
+
+### Interactive Mode
+
+```bash
+raculator
+```
+
+In interactive mode:
+- Type expressions and press Enter to calculate
+- Use `@` or `Alt+G` to insert the last result
+- Use `hex`, `oct`, `bin` to convert the last result to different formats
+- Type `q` or `quit` to exit
+
+```
+> 255
+= 255
+> hex
+= 0xFF
+> @ + 1
+= 256
+> quit
+```
+
+### Bitwise Interactive Mode
+
+```bash
+raculator -B
+```
+
+## Operators
+
+### Standard Operators
+
+| Operator | Description | Example | Result |
+|----------|-------------|---------|--------|
+| `+` | Addition | `1 + 2` | 3 |
+| `-` | Subtraction | `5 - 3` | 2 |
+| `*` | Multiplication | `3 * 4` | 12 |
+| `/` | Division | `10 / 2` | 5 |
+| `%` | Modulo | `10 % 3` | 1 |
+| `^` | Exponentiation | `2 ^ 3` | 8 |
+
+### Bitwise Operators (use `-B` flag)
+
+| Operator | Description | Example | Result |
+|----------|-------------|---------|--------|
+| `&` | AND | `12 & 10` | 8 |
+| `\|` | OR | `12 \| 10` | 14 |
+| `^` | XOR | `12 ^ 10` | 6 |
+| `~` | NOT | `~0` | -1 |
+| `<<` | Left shift | `8 << 2` | 32 |
+| `>>` | Right shift | `8 >> 2` | 2 |
+
+## Functions
+
+| Function | Description | Example | Result |
+|----------|-------------|---------|--------|
+| `lg(x)` | Base-10 logarithm | `lg(100)` | 2 |
+| `lg(x, base)` | Custom base logarithm | `lg(8, 2)` | 3 |
+| `log(x, base)` | Custom base logarithm | `log(27, 3)` | 3 |
+| `ln(x)` | Natural logarithm | `ln(e)` | 1 |
+| `sqrt(x)` | Square root | `sqrt(16)` | 4 |
+| `pow(x, y)` | Power function | `pow(2, 10)` | 1024 |
+| `sin(x)` | Sine (radians) | `sin(0)` | 0 |
+| `cos(x)` | Cosine (radians) | `cos(0)` | 1 |
+| `tan(x)` | Tangent (radians) | `tan(0)` | 0 |
+| `asin(x)` | Inverse sine | `asin(1)` | π/2 |
+| `acos(x)` | Inverse cosine | `acos(1)` | 0 |
+| `atan(x)` | Inverse tangent | `atan(1)` | π/4 |
+| `mod(a, b)` | Modulo function | `mod(10, 3)` | 1 |
+
+## Constants
+
+| Constant | Value | Example |
+|----------|-------|---------|
+| `pi`, `PI` | ≈ 3.14159 | `sin(pi / 2)` = 1 |
+| `e`, `E` | ≈ 2.71828 | `ln(e)` = 1 |
+
+## Number Formats
+
+### Input Formats
+
+| Format | Prefix | Example | Value |
+|--------|--------|---------|-------|
+| Decimal | None | `255` | 255 |
+| Binary | `0b` | `0b11111111` | 255 |
+| Octal | `0o` | `0o377` | 255 |
+| Hexadecimal | `0x` | `0xFF` | 255 |
+
+### Output Format Options
+
+| Option | Description | Example |
+|--------|-------------|---------|
+| `-x`, `--hex` | Hexadecimal output | `raculator -x "255"` → `0xFF` |
+| `-o`, `--oct` | Octal output | `raculator -o "255"` → `0o377` |
+| `-b`, `--bin` | Binary output | `raculator -b "255"` → `0b11111111` |
+
+## Command Line Options
+
+```
+Usage: raculator [OPTIONS] [EXPRESSION] [COMMAND]
+
+Arguments:
+  [EXPRESSION]  Expression to calculate
+
+Options:
+  -r, --row <ROW>      Expression to calculate (shorthand)
+  -x, --hex            Output result in hexadecimal format
+  -o, --oct            Output result in octal format
+  -b, --bin            Output result in binary format
+  -B, --bits           Bitwise operation mode
+  -F, --functions      Show supported functions
+  -h, --help           Print help
+```
+
+## Testing
+
+Run all tests:
+
+```bash
+cargo test
+```
+
+The test suite includes 61 test cases covering:
+- Basic arithmetic operations
+- Number format parsing
+- Mathematical constants
+- Function calculations
+- Trigonometric functions
+- Bitwise operations
+- Error handling
+- Tokenization and parsing
+
+## Project Structure
+
+```
+raculator/
+├── Cargo.toml              # Project configuration
+├── agent.md                # English documentation for AI agents
+├── agent_zh.md             # Chinese documentation for AI agents
+└── src/
+    ├── main.rs            # Program entry point
+    ├── lib.rs             # Test module
+    ├── cli.rs             # CLI argument definitions
+    ├── repl.rs            # Interactive REPL
+    ├── calculator.rs      # Calculation orchestration
+    ├── evaluator.rs       # Expression evaluation
+    ├── functions.rs       # Mathematical functions
+    ├── operator.rs        # Operator definitions
+    ├── shunting_yard.rs   # Infix to postfix conversion
+    ├── token.rs           # Lexical analysis
+    └── linked_list.rs     # Linked list data structure
+```
+
+## Examples
+
+```bash
+# Complex expressions
+raculator "sqrt(pow(3, 2) + pow(4, 2))"    # Output: 5
+
+# Scientific notation
+raculator "1e3 + 2.5e-3"                   # Output: 1000.0025
+
+# Mixed number formats
+raculator "0xFF + 0b1010"                  # Output: 265
+
+# Trigonometric identities
+raculator "sin(pi / 2) + cos(0)"           # Output: 2
+
+# Logarithms
+raculator "lg(1000)"                       # Output: 3
+raculator "log(8, 2)"                      # Output: 3
+
+# Bitwise with format output
+raculator -Bb "8 << 2"                     # Output: 0b100000
+```
+
+## License
+
+MIT License - see LICENSE file for details.
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## Acknowledgments
+
+- Built with [Rust](https://www.rust-lang.org/)
+- CLI parsing with [clap](https://github.com/clap-rs/clap)
+- Interactive input with [rustyline](https://github.com/kkawakam/rustyline)

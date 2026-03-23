@@ -2,6 +2,8 @@
 //!
 //! Supports standard arithmetic and bitwise operations with multiple number formats.
 
+#![allow(dead_code)]
+
 mod calculator;
 mod cli;
 mod evaluator;
