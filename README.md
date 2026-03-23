@@ -162,19 +162,52 @@ ralqlator -B
 ## Command Line Options
 
 ```
-Usage: ralqlator [OPTIONS] [EXPRESSION] [COMMAND]
+Usage: ralqlator [OPTIONS] [EXPR] [COMMAND]
 
 Arguments:
-  [EXPRESSION]  Expression to calculate
+  [EXPR]  Expression to calculate
 
 Options:
-  -r, --row <ROW>      Expression to calculate (shorthand)
+  -r, --row <EXPR>     Expression to calculate (shorthand)
   -x, --hex            Output result in hexadecimal format
   -o, --oct            Output result in octal format
   -b, --bin            Output result in binary format
   -B, --bits           Bitwise operation mode
-  -F, --functions      Show supported functions
+  -F, --functions      Show help for functions
+  -O, --operators      Show help for operators
+  -N, --formats        Show help for number formats
+  -C, --constants      Show help for constants
   -h, --help           Print help
+
+Commands:
+  functions            Show supported mathematical functions
+  operators            Show supported operators
+  formats              Show supported number formats
+  constants            Show mathematical constants
+  info                 Show all help information
+```
+
+### Help Examples
+
+```bash
+# Show function help
+ralqlator functions
+ralqlator -F
+
+# Show operator help
+ralqlator operators
+ralqlator -O
+
+# Show number format help
+ralqlator formats
+ralqlator -N
+
+# Show constants help
+ralqlator constants
+ralqlator -C
+
+# Show all help
+ralqlator info
 ```
 
 ## Testing

@@ -162,19 +162,52 @@ ralqlator -B
 ## 命令行选项
 
 ```
-Usage: ralqlator [OPTIONS] [EXPRESSION] [COMMAND]
+Usage: ralqlator [OPTIONS] [EXPR] [COMMAND]
 
 Arguments:
-  [EXPRESSION]  要计算的表达式
+  [EXPR]  要计算的表达式
 
 Options:
-  -r, --row <ROW>      要计算的表达式（简写）
+  -r, --row <EXPR>     要计算的表达式（简写）
   -x, --hex            以十六进制格式输出结果
   -o, --oct            以八进制格式输出结果
   -b, --bin            以二进制格式输出结果
   -B, --bits           位运算模式
-  -F, --functions      显示支持的函数
+  -F, --functions      显示函数帮助
+  -O, --operators      显示运算符帮助
+  -N, --formats        显示数字格式帮助
+  -C, --constants      显示常数帮助
   -h, --help           打印帮助信息
+
+Commands:
+  functions            显示数学函数
+  operators            显示运算符
+  formats              显示数字格式
+  constants            显示数学常数
+  info                 显示所有帮助信息
+```
+
+### 帮助示例
+
+```bash
+# 显示函数帮助
+ralqlator functions
+ralqlator -F
+
+# 显示运算符帮助
+ralqlator operators
+ralqlator -O
+
+# 显示数字格式帮助
+ralqlator formats
+ralqlator -N
+
+# 显示常数帮助
+ralqlator constants
+ralqlator -C
+
+# 显示所有帮助
+ralqlator info
 ```
 
 ## 测试
