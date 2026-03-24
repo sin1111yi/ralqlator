@@ -15,6 +15,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
+
+/// User-defined function storage
+/// Maps function name -> (parameter names, expression)
+pub type UserFunctions = Arc<Mutex<HashMap<String, (Vec<String>, String)>>>;
+
 /// Calculate factorial: n! = n * (n-1) * ... * 1
 pub fn eval_factorial(n: f64) -> Result<f64, String> {
     if n < 0.0 {
