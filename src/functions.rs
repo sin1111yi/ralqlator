@@ -34,16 +34,12 @@ pub fn eval_factorial(n: f64) -> Result<f64, String> {
     Ok(result)
 }
 
-/// Calculate sum of range: sum(n) = 1 + 2 + ... + n = n*(n+1)/2
-pub fn eval_sum(n: f64) -> Result<f64, String> {
-    if n < 0.0 {
-        return Err("sum: argument must be non-negative".to_string());
+/// Calculate sum of multiple arguments: sum(a, b, c, ...) = a + b + c + ...
+pub fn eval_sum(args: &[f64]) -> Result<f64, String> {
+    if args.is_empty() {
+        return Err("sum: requires at least 1 argument".to_string());
     }
-    if n.fract() != 0.0 {
-        return Err("sum: argument must be an integer".to_string());
-    }
-    let n = n as i64;
-    Ok((n * (n + 1) / 2) as f64)
+    Ok(args.iter().sum())
 }
 
 /// Calculate logarithm with custom base: log_base(base, x) = ln(x) / ln(base)

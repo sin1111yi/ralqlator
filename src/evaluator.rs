@@ -136,10 +136,7 @@ pub fn eval_postfix(postfix: Vec<String>) -> Result<f64, String> {
                     1 => eval_factorial(args[0]),
                     _ => Err(format!("factorial: requires 1 argument, got {}", args.len())),
                 },
-                "sum" => match args.len() {
-                    1 => eval_sum(args[0]),
-                    _ => Err(format!("sum: requires 1 argument, got {}", args.len())),
-                },
+                "sum" => eval_sum(&args),
                 "mod" => match args.len() {
                     2 => eval_mod(args[0], args[1]),
                     _ => Err(format!(

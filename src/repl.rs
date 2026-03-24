@@ -192,7 +192,7 @@ pub fn print_functions_help() {
     println!("  atan(x)            Inverse tangent (result in radians)");
     println!("  mod(a, b)          Modulo (a % b)");
     println!("  factorial(n)       Factorial (n!)");
-    println!("  sum(n)             Sum of 1 to n (1+2+...+n)");
+    println!("  sum(a,b,...)       Sum of multiple arguments");
 }
 
 /// Print help for operators
