@@ -104,8 +104,12 @@ fn handle_standard_char(
                 tokens.push(c.to_string());
             }
         }
-        '+' | '-' => {
-            if is_scientific_sign(current) {
+        '+' | '-' | '!' => {
+            if c == '!' {
+                // Factorial operator
+                push_current(tokens, current);
+                tokens.push(c.to_string());
+            } else if is_scientific_sign(current) {
                 current.push(c);
             } else if c == '-' && is_unary_context(tokens, current) {
                 push_current(tokens, current);

@@ -191,6 +191,8 @@ pub fn print_functions_help() {
     println!("  acos(x)            Inverse cosine (result in radians)");
     println!("  atan(x)            Inverse tangent (result in radians)");
     println!("  mod(a, b)          Modulo (a % b)");
+    println!("  factorial(n)       Factorial (n!)");
+    println!("  sum(n)             Sum of 1 to n (1+2+...+n)");
 }
 
 /// Print help for operators
@@ -204,6 +206,7 @@ pub fn print_operators_help() {
     println!("    /    Division          10 / 2 = 5");
     println!("    %    Modulo            10 % 3 = 1");
     println!("    ^    Exponentiation     2 ^ 3 = 8");
+    println!("    !    Factorial          5! = 120");
     println!();
     println!("  Bitwise Operators (use -B flag):");
     println!("    &    AND               12 & 10 = 8");
