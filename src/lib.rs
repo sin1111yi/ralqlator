@@ -24,7 +24,6 @@ mod calculator;
 mod cli;
 mod evaluator;
 mod functions;
-mod linked_list;
 mod operator;
 mod repl;
 mod shunting_yard;
@@ -356,23 +355,6 @@ mod tests {
         let tokens = vec!["(".to_string(), "1".to_string(), "+".to_string(), "2".to_string(), ")".to_string(), "*".to_string(), "3".to_string()];
         let postfix = shunting_yard::infix_to_postfix(tokens);
         assert_eq!(postfix, vec!["1", "2", "+", "3", "*"]);
-    }
-
-    // ==================== Linked List Tests ====================
-
-    #[test]
-    fn test_linked_list_push() {
-        let mut list = linked_list::LinkedList::new();
-        list.push_back("1".to_string());
-        list.push_back("2".to_string());
-        list.push_back("3".to_string());
-        assert_eq!(list.to_vec(), vec!["1", "2", "3"]);
-    }
-
-    #[test]
-    fn test_linked_list_empty() {
-        let list = linked_list::LinkedList::new();
-        assert_eq!(list.to_vec(), Vec::<String>::new());
     }
 
     // ==================== Output Format Tests ====================
