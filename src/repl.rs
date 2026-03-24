@@ -193,6 +193,7 @@ pub fn print_functions_help() {
     println!("  mod(a, b)          Modulo (a % b)");
     println!("  factorial(n)       Factorial (n!)");
     println!("  sum(a,b,...)       Sum of multiple arguments");
+    println!("  prod(a,b,...)      Product of multiple arguments");
     println!("  suma(s,b,e)        Sum of sequence s from term b to e");
 }
 

@@ -17,7 +17,7 @@
 
 use crate::functions::{
     eval_acos, eval_asin, eval_atan, eval_cos, eval_factorial, eval_lg, eval_ln, eval_log_base,
-    eval_mod, eval_pow, eval_sin, eval_sqrt, eval_sum, eval_tan,
+    eval_mod, eval_product, eval_pow, eval_sin, eval_sqrt, eval_sum, eval_tan,
 };
 use crate::operator::{is_function, is_operator, is_postfix_unary_operator};
 
@@ -137,6 +137,7 @@ pub fn eval_postfix(postfix: Vec<String>) -> Result<f64, String> {
                     _ => Err(format!("factorial: requires 1 argument, got {}", args.len())),
                 },
                 "sum" => eval_sum(&args),
+                "prod" => eval_product(&args),
                 "mod" => match args.len() {
                     2 => eval_mod(args[0], args[1]),
                     _ => Err(format!(

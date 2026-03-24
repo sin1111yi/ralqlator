@@ -49,6 +49,14 @@ pub fn eval_sum(args: &[f64]) -> Result<f64, String> {
     Ok(args.iter().sum())
 }
 
+/// Calculate product of multiple arguments: prod(a, b, c, ...) = a * b * c * ...
+pub fn eval_product(args: &[f64]) -> Result<f64, String> {
+    if args.is_empty() {
+        return Err("prod: requires at least 1 argument".to_string());
+    }
+    Ok(args.iter().product())
+}
+
 /// Calculate logarithm with custom base: log_base(base, x) = ln(x) / ln(base)
 pub fn eval_log_base(base: f64, x: f64) -> Result<f64, String> {
     if base <= 0.0 || base == 1.0 {
