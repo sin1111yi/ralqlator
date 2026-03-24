@@ -31,7 +31,7 @@ use rustyline::{
     Config, Context, Editor,
 };
 
-use crate::calculator::{calculate, calculate_bitwise};
+use crate::calculator::{calculate_bitwise, calculate_with_functions};
 use crate::functions::UserFunctions;
 
 /// Available REPL commands
@@ -290,6 +290,7 @@ fn print_tab_help() {
     println!("  @                 - Insert last result");
     println!("  create function   - Define custom function: create function f(x,y) = x+y");
     println!("  create sequence   - Define sequence: create sequence a(n) = n*(n+1)/2");
+    println!("  Call function     - Use: name(args), e.g., f(3,4) or a(10)");
     println!("  q/quit            - Exit");
     println!();
     println!("  Tab               - Command completion");
@@ -569,7 +570,7 @@ fn run_repl_with_mode(initial_mode: CalcMode) {
         // Calculate based on current mode
         match mode {
             CalcMode::Standard => {
-                match calculate(processed) {
+                match calculate_with_functions(processed, &user_functions) {
                     Ok(result) => {
                         last_result.set(result);
                         println!("{}", result);
