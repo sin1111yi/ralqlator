@@ -16,13 +16,16 @@ A powerful command-line calculator written in Rust.
 - **Mathematical Functions**: Logarithms, trigonometric functions, square root, power, factorial
 - **Multi-argument Functions**: `sum(a,b,...)`, `prod(a,b,...)` for sum and product of multiple values
 - **Sequence Operations**: `suma(seq, begin, end)` for summing sequence terms
-- **User-defined Functions**: Create custom functions with `create function name(args) = expression`
-- **User-defined Sequences**: Create sequences with `create sequence name(n) = formula`
+- **User-defined Functions**: Create custom functions with `create func name(args) = expression`
+- **User-defined Sequences**: Create sequences with `create seq name(n) = formula`
+- **User-defined Constants**: Create constants with `create const NAME value`
 - **Multiple Number Formats**: Decimal, binary (0b), octal (0o), hexadecimal (0x)
 - **Scientific Notation**: Support for 1e3, 2.5e-3, etc.
 - **Output Format Conversion**: Display results in hex, octal, or binary
 - **Interactive REPL**: With history navigation, Tab completion, and last result insertion
-- **Mathematical Constants**: π (pi) and e (Euler's number)
+- **Mathematical Constants**: Built-in `C_PI` and `C_E`, plus user-defined constants
+- **Comparison Operators**: `<`, `>`, `=`, `==` with boolean/yes-no results
+- **Comprehensive Help System**: `help [topic]` for detailed documentation
 
 ## Installation
 
@@ -52,7 +55,15 @@ ralqlator "1 + 2 * 3"              # Output: 7
 
 # Using functions
 ralqlator "lg(100)"                # Output: 2
-ralqlator "sin(pi / 2)"            # Output: 1
+ralqlator "sin(C_PI / 2)"          # Output: 1
+
+# Using constants
+ralqlator "C_PI * 2"               # Output: 6.28318
+ralqlator "C_E ^ 2"                # Output: 7.389
+
+# Comparison operators
+ralqlator "5 > 3"                  # Output: true
+ralqlator "5 = 5"                  # Output: yes
 
 # Bitwise operations
 ralqlator -B "12 & 10"             # Output: 8
@@ -65,6 +76,14 @@ ralqlator -b "255"                 # Output: 0b11111111
 
 # Combined options
 ralqlator -Bx "0xFF & 0x0F"        # Output: 0xF
+
+# Scientific notation (shows both formats)
+ralqlator "1e3 * 2"                # Output: 2000
+                                 #   (scientific: 2.000000e3)
+
+# Note: Negative non-decimal numbers require parentheses
+ralqlator "-(0xFF)"                # Output: -255
+ralqlator "-0xFF"                  # Error: Negative non-decimal numbers are not supported
 ```
 
 ### Interactive Mode
@@ -79,6 +98,8 @@ In interactive mode:
 - Use `hex`, `oct`, `bin` to convert the last result to different formats
 - Press `Tab` for command completion (shows help on empty line)
 - Use `mode` command to switch between standard and bitwise modes
+- Use `help [topic]` for detailed help on specific topics
+- Use `create func/seq/const` to define functions, sequences, or constants
 - Type `q` or `quit` to exit
 
 ```
@@ -88,10 +109,17 @@ In interactive mode:
 0xFF
 > @ + 1
 256
+> create const G 9.81
+Constant 'G' = 9.81
+> G * 10
+98.1
 > mode
 Switched to Bitwise mode (integer operations)
 > 12 & 10
 8
+> help operators
+Operators - Supported Operators
+...
 > quit
 ```
 
@@ -102,6 +130,19 @@ Switched to Bitwise mode (integer operations)
 | `Tab` | Command completion (shows help on empty line) |
 | `@` | Insert last result |
 | `hex` / `oct` / `bin` | Show last result in different formats |
+| `mode` | Toggle between standard and bitwise modes |
+| `mode standard` | Switch to standard mode |
+| `mode bitwise` | Switch to bitwise mode |
+| `help` | Show all help information |
+| `help [topic]` | Show help for specific topic (functions, operators, formats, constants, mode, create, standard, bitwise) |
+| `operators` | Show operators for current mode |
+| `functions` | Show mathematical functions |
+| `formats` | Show number formats |
+| `constants` | Show mathematical constants |
+| `create func` | Define custom function: `create func f(x,y) = x+y` |
+| `create seq` | Define sequence: `create seq a(n) = n*(n+1)/2` |
+| `create const` | Define constant: `create const NAME value` |
+| `q` / `quit` | Exit |
 | `mode` | Toggle between standard and bitwise modes |
 | `mode standard` | Switch to standard mode |
 | `mode bitwise` | Switch to bitwise mode |
@@ -170,7 +211,7 @@ ralqlator -B
 | `lg(x)` | Base-10 logarithm | `lg(100)` | 2 |
 | `lg(x, base)` | Custom base logarithm | `lg(8, 2)` | 3 |
 | `log(x, base)` | Custom base logarithm | `log(27, 3)` | 3 |
-| `ln(x)` | Natural logarithm | `ln(e)` | 1 |
+| `ln(x)` | Natural logarithm | `ln(C_E)` | 1 |
 | `sqrt(x)` | Square root | `sqrt(16)` | 4 |
 | `pow(x, y)` | Power function | `pow(2, 10)` | 1024 |
 | `sin(x)` | Sine (radians) | `sin(0)` | 0 |
@@ -189,16 +230,16 @@ ralqlator -B
 
 Create custom functions in interactive mode:
 ```
-create function name(args) = expression
+create func name(args) = expression
 ```
 
 Examples:
 ```
-> create function f(x) = x^2
+> create func f(x) = x^2
 > f(5)
 25
 
-> create function add(a,b) = a+b
+> create func add(a,b) = a+b
 > add(3, 7)
 10
 ```
@@ -207,28 +248,66 @@ Examples:
 
 Create sequences (single-variable functions) for use with `suma()`:
 ```
-create sequence name(n) = formula
+create seq name(n) = formula
 ```
 
 Examples:
 ```
-> create sequence triangle(n) = n*(n+1)/2
+> create seq triangle(n) = n*(n+1)/2
 > triangle(10)
 55
 > suma(triangle, 1, 5)
 35
 
-> create sequence square(n) = n^2
+> create seq square(n) = n^2
 > suma(square, 1, 5)
 55
 ```
 
+### User-defined Constants
+
+Create custom constants in interactive mode:
+```
+create const NAME value
+```
+
+Examples:
+```
+> create const G 9.81
+Constant 'G' = 9.81
+
+> create const SPEED_OF_LIGHT 299792458
+Constant 'SPEED_OF_LIGHT' = 299792458
+
+> G * 10
+98.1
+```
+
+Note: Constant names starting with `C_` are reserved for built-in constants.
+
 ## Constants
 
-| Constant | Value | Example |
-|----------|-------|---------|
-| `pi`, `PI` | ≈ 3.14159 | `sin(pi / 2)` = 1 |
-| `e`, `E` | ≈ 2.71828 | `ln(e)` = 1 |
+### Built-in Constants
+
+| Constant | Value | Description |
+|----------|-------|-------------|
+| `C_PI` | ≈ 3.14159 | Ratio of circumference to diameter |
+| `C_E` | ≈ 2.71828 | Euler's number, natural log base |
+
+Note: Constants use `C_` prefix format. Names starting with `C_` are reserved.
+
+### Examples
+
+```bash
+> C_PI * 2
+6.28318
+
+> C_E ^ 2
+7.389
+
+> sin(C_PI / 2)
+1
+```
 
 ## Number Formats
 
@@ -308,18 +387,39 @@ Run all tests:
 cargo test
 ```
 
-The test suite includes **103 test cases** covering:
+The test suite includes **425+ test cases** organized in 12 test files:
+
+### Test Organization
+
+- **arithmetic_tests.rs** (45 tests): Basic arithmetic operations
+- **bitwise_tests.rs** (38 tests): Bitwise operations
+- **cli_tests.rs** (37 tests): CLI arguments and options
+- **comparison_tests.rs** (22 tests): Comparison operators
+- **constants_tests.rs** (12 tests): Mathematical constants
+- **edge_cases_tests.rs** (50 tests): Boundary conditions
+- **error_handling_tests.rs** (41 tests): Error conditions
+- **functions_tests.rs** (66 tests): Mathematical functions
+- **interactive_tests.rs** (59 tests): REPL interactive mode
+- **internal_tests.rs** (12 tests): Internal module tests
+- **number_formats_tests.rs** (34 tests): Number format I/O
+- **user_defined_tests.rs** (23 tests): User-defined functions/constants
+
+### Coverage
+
 - Basic arithmetic operations
-- Number format parsing
-- Mathematical constants
+- Number format parsing (binary, octal, hexadecimal)
+- Mathematical constants (C_PI, C_E)
 - Function calculations (built-in and user-defined)
 - Trigonometric functions
 - Bitwise operations
 - Factorial, sum, prod, and suma functions
 - Sequence operations
+- User-defined functions, sequences, and constants
+- Comparison operators (<, >, =, ==)
 - Error handling and invalid input
 - Edge cases (nested parentheses, large/small numbers)
 - Tokenization and parsing
+- Interactive REPL commands
 
 ## Project Structure
 
@@ -328,18 +428,31 @@ ralqlator/
 ├── Cargo.toml              # Project configuration
 ├── README.md               # English documentation
 ├── README_zh.md            # Chinese documentation
-├── agent.md                # English AI agent documentation
+├── agent.md                # AI agent documentation
 └── src/
-    ├── main.rs            # Program entry point
-    ├── lib.rs             # Test module (103 tests)
-    ├── cli.rs             # CLI argument definitions
-    ├── repl.rs            # Interactive REPL with mode switching
-    ├── calculator.rs      # Calculation orchestration
-    ├── evaluator.rs       # Expression evaluation
-    ├── functions.rs       # Mathematical functions
-    ├── operator.rs        # Operator definitions
-    ├── shunting_yard.rs   # Infix to postfix conversion
-    └── token.rs           # Lexical analysis
+    ├── main.rs             # Program entry point
+    ├── cli.rs              # CLI argument definitions
+    ├── repl.rs             # Interactive REPL with mode switching
+    ├── calculator.rs       # Calculation orchestration
+    ├── evaluator.rs        # Expression evaluation
+    ├── functions.rs        # Mathematical functions
+    ├── operator.rs         # Operator definitions
+    ├── shunting_yard.rs    # Infix to postfix conversion
+    └── token.rs            # Lexical analysis
+
+tests/
+├── arithmetic_tests.rs     # Basic arithmetic operations
+├── bitwise_tests.rs        # Bitwise operations
+├── cli_tests.rs            # CLI arguments and options
+├── comparison_tests.rs     # Comparison operators
+├── constants_tests.rs      # Mathematical constants
+├── edge_cases_tests.rs     # Boundary conditions
+├── error_handling_tests.rs # Error conditions
+├── functions_tests.rs      # Mathematical functions
+├── interactive_tests.rs    # REPL interactive mode
+├── internal_tests.rs       # Internal module tests
+├── number_formats_tests.rs # Number format I/O
+└── user_defined_tests.rs   # User-defined functions/constants
 ```
 
 ## Examples
@@ -348,14 +461,20 @@ ralqlator/
 # Complex expressions
 ralqlator "sqrt(pow(3, 2) + pow(4, 2))"    # Output: 5
 
-# Scientific notation
+# Scientific notation (shows both formats)
 ralqlator "1e3 + 2.5e-3"                   # Output: 1000.0025
+                                 #   (scientific: 1.002500e3)
 
 # Mixed number formats
 ralqlator "0xFF + 0b1010"                  # Output: 265
 
-# Trigonometric identities
-ralqlator "sin(pi / 2) + cos(0)"           # Output: 2
+# Using constants
+ralqlator "C_PI * 2"                       # Output: 6.28318
+ralqlator "sin(C_PI / 2) + cos(0)"         # Output: 2
+
+# Comparison operators
+ralqlator "5 > 3"                          # Output: true
+ralqlator "5 = 5"                          # Output: yes
 
 # Logarithms
 ralqlator "lg(1000)"                       # Output: 3
@@ -364,16 +483,29 @@ ralqlator "log(8, 2)"                      # Output: 3
 # Bitwise with format output
 ralqlator -Bb "8 << 2"                     # Output: 0b100000
 
+# Negative non-decimal numbers (use parentheses)
+ralqlator "-(0xFF)"                        # Output: -255
+
 # User-defined functions
 ralqlator
-> create function f(x) = x^2
+> create func f(x) = x^2
 > f(5)
 25
 
 # User-defined sequences
-> create sequence triangle(n) = n*(n+1)/2
+> create seq triangle(n) = n*(n+1)/2
 > suma(triangle, 1, 5)
 35
+
+# User-defined constants
+> create const G 9.81
+> G * 10
+98.1
+
+# Help system
+> help operators
+> help functions
+> help create
 ```
 
 ## License
