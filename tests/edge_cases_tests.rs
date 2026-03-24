@@ -292,15 +292,15 @@ fn test_alternating_signs() {
 fn test_sin_pi() {
     let (stdout, _, success) = run_cli(&["sin(C_PI)"]);
     assert!(success);
-    // sin(π) should be very close to 0
-    assert!(stdout.contains("0") || stdout.contains("1e-"));
+    // sin(π) should be very close to 0 (displays as scientific notation)
+    assert!(stdout.contains("0") || stdout.contains("e-"));
 }
 
 #[test]
 fn test_sin_negative_pi() {
     let (stdout, _, success) = run_cli(&["sin(0 - C_PI)"]);
     assert!(success);
-    assert!(stdout.contains("0") || stdout.contains("1e-"));
+    assert!(stdout.contains("0") || stdout.contains("e-"));
 }
 
 #[test]
@@ -314,7 +314,8 @@ fn test_cos_pi() {
 fn test_cos_pi_half() {
     let (stdout, _, success) = run_cli(&["cos(C_PI / 2)"]);
     assert!(success);
-    assert!(stdout.contains("0") || stdout.contains("1e-"));
+    // cos(π/2) should be very close to 0 (displays as scientific notation)
+    assert!(stdout.contains("0") || stdout.contains("e-"));
 }
 
 #[test]

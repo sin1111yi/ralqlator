@@ -69,6 +69,19 @@ fn contains_scientific_notation(expr: &str) -> bool {
     false
 }
 
+/// Check if a small decimal number has at least 8 leading zeros after decimal point
+/// Returns true for numbers like 0.000000001 (1e-9) or smaller
+/// Note: 0.00000001 has 7 zeros, 0.000000001 has 8 zeros
+fn has_many_leading_zeros(value: f64) -> bool {
+    if value == 0.0 {
+        return false;
+    }
+    let abs_val = value.abs();
+    // Check if absolute value is <= 1e-7 (has 7+ leading zeros, displays as 0.0000000X or smaller)
+    // This means numbers like 0.00000001 (1e-8) and smaller will use scientific notation
+    abs_val <= 1e-7 && abs_val > 0.0
+}
+
 /// Format and print result based on output format flags
 fn print_result(result: f64, hex: bool, oct: bool, bin: bool, original_expr: &str) -> Result<(), String> {
     // Check for special comparison results first
@@ -79,6 +92,9 @@ fn print_result(result: f64, hex: bool, oct: bool, bin: bool, original_expr: &st
 
     // Check if input contained scientific notation
     let input_had_scientific = contains_scientific_notation(original_expr);
+    
+    // Check if result has many leading zeros (8+ zeros after decimal point)
+    let has_leading_zeros = has_many_leading_zeros(result);
 
     if hex || oct || bin {
         if result.fract() == 0.0 && result.abs() < 1e15 {
@@ -96,9 +112,14 @@ fn print_result(result: f64, hex: bool, oct: bool, bin: bool, original_expr: &st
         }
         Ok(())
     } else {
-        println!("{}", result);
+        // For very small numbers with 8+ leading zeros, use scientific notation
+        if has_leading_zeros {
+            println!("{:.6e}", result);
+        } else {
+            println!("{}", result);
+        }
         // If input had scientific notation, also show scientific format
-        if input_had_scientific {
+        if input_had_scientific && !has_leading_zeros {
             println!("  (scientific: {:.6e})", result);
         }
         Ok(())
