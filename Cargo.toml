@@ -4,5 +4,11 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+# CLI and REPL
 clap = { version = "4.4", features = ["derive"] }
 rustyline = "14.0"
+
+# Mathematical libraries
+num = "0.4"                    # General number traits and utilities
+num-traits = "0.2"             # Numeric traits
+statrs = "0.17"                # Statistical functions and special functions

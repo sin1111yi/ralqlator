@@ -35,8 +35,15 @@ const UNARY_OPERATORS: &[&str] = &["~", "!"];
 
 /// List of supported functions
 const FUNCTIONS: &[&str] = &[
-    "lg", "log", "ln", "sqrt", "pow", "sin", "cos", "tan", "asin", "acos", "atan", "mod",
-    "factorial", "sum", "prod",
+    "lg", "log", "ln", "log2", "sqrt", "cbrt", "pow",
+    "sin", "cos", "tan", "sec", "csc", "cot",
+    "asin", "acos", "atan", "atan2",
+    "sinh", "cosh", "tanh", "asinh", "acosh", "atanh",
+    "mod", "factorial", "gamma",
+    "sum", "prod",
+    "abs", "floor", "ceil", "round",
+    "erf", "erfc",
+    "beta",
 ];
 
 /// Check if token is an operator

@@ -19,8 +19,11 @@
 // qwen3.5-plus (Alibaba's large language model).
 
 use crate::functions::{
-    eval_acos, eval_asin, eval_atan, eval_cos, eval_factorial, eval_lg, eval_ln, eval_log_base,
-    eval_mod, eval_pow, eval_product, eval_sin, eval_sqrt, eval_sum, eval_tan,
+    eval_abs, eval_acos, eval_acosh, eval_asin, eval_asinh, eval_atan, eval_atan2, eval_atanh,
+    eval_beta, eval_cbrt, eval_ceil, eval_cos, eval_cosh, eval_cot, eval_csc, eval_erf,
+    eval_erfc, eval_factorial, eval_floor, eval_gamma,
+    eval_lg, eval_ln, eval_log2, eval_log_base, eval_mod, eval_pow, eval_product, eval_round, eval_sec,
+    eval_sin, eval_sinh, eval_sqrt, eval_sum, eval_tan, eval_tanh,
 };
 use crate::operator::{
     is_comparison_operator, is_function, is_operator, is_postfix_unary_operator,
@@ -154,9 +157,17 @@ pub fn eval_postfix(postfix: Vec<String>) -> Result<f64, String> {
                     1 => eval_ln(args[0]),
                     _ => Err(format!("ln: requires 1 argument, got {}", args.len())),
                 },
+                "log2" => match args.len() {
+                    1 => eval_log2(args[0]),
+                    _ => Err(format!("log2: requires 1 argument, got {}", args.len())),
+                },
                 "sqrt" => match args.len() {
                     1 => eval_sqrt(args[0]),
                     _ => Err(format!("sqrt: requires 1 argument, got {}", args.len())),
+                },
+                "cbrt" => match args.len() {
+                    1 => Ok(eval_cbrt(args[0])),
+                    _ => Err(format!("cbrt: requires 1 argument, got {}", args.len())),
                 },
                 "pow" => match args.len() {
                     2 => eval_pow(args[0], args[1]),
@@ -177,6 +188,18 @@ pub fn eval_postfix(postfix: Vec<String>) -> Result<f64, String> {
                     1 => eval_tan(args[0]),
                     _ => Err(format!("tan: requires 1 argument, got {}", args.len())),
                 },
+                "sec" => match args.len() {
+                    1 => eval_sec(args[0]),
+                    _ => Err(format!("sec: requires 1 argument, got {}", args.len())),
+                },
+                "csc" => match args.len() {
+                    1 => eval_csc(args[0]),
+                    _ => Err(format!("csc: requires 1 argument, got {}", args.len())),
+                },
+                "cot" => match args.len() {
+                    1 => eval_cot(args[0]),
+                    _ => Err(format!("cot: requires 1 argument, got {}", args.len())),
+                },
                 "asin" => match args.len() {
                     1 => eval_asin(args[0]),
                     _ => Err(format!("asin: requires 1 argument, got {}", args.len())),
@@ -189,12 +212,44 @@ pub fn eval_postfix(postfix: Vec<String>) -> Result<f64, String> {
                     1 => Ok(eval_atan(args[0])),
                     _ => Err(format!("atan: requires 1 argument, got {}", args.len())),
                 },
+                "atan2" => match args.len() {
+                    2 => Ok(eval_atan2(args[0], args[1])),
+                    _ => Err(format!("atan2: requires 2 arguments, got {}", args.len())),
+                },
+                "sinh" => match args.len() {
+                    1 => Ok(eval_sinh(args[0])),
+                    _ => Err(format!("sinh: requires 1 argument, got {}", args.len())),
+                },
+                "cosh" => match args.len() {
+                    1 => Ok(eval_cosh(args[0])),
+                    _ => Err(format!("cosh: requires 1 argument, got {}", args.len())),
+                },
+                "tanh" => match args.len() {
+                    1 => Ok(eval_tanh(args[0])),
+                    _ => Err(format!("tanh: requires 1 argument, got {}", args.len())),
+                },
+                "asinh" => match args.len() {
+                    1 => Ok(eval_asinh(args[0])),
+                    _ => Err(format!("asinh: requires 1 argument, got {}", args.len())),
+                },
+                "acosh" => match args.len() {
+                    1 => eval_acosh(args[0]),
+                    _ => Err(format!("acosh: requires 1 argument, got {}", args.len())),
+                },
+                "atanh" => match args.len() {
+                    1 => eval_atanh(args[0]),
+                    _ => Err(format!("atanh: requires 1 argument, got {}", args.len())),
+                },
                 "factorial" => match args.len() {
                     1 => eval_factorial(args[0]),
                     _ => Err(format!(
                         "factorial: requires 1 argument, got {}",
                         args.len()
                     )),
+                },
+                "gamma" => match args.len() {
+                    1 => eval_gamma(args[0]),
+                    _ => Err(format!("gamma: requires 1 argument, got {}", args.len())),
                 },
                 "sum" => eval_sum(&args),
                 "prod" => eval_product(&args),
@@ -204,6 +259,34 @@ pub fn eval_postfix(postfix: Vec<String>) -> Result<f64, String> {
                         "mod: requires 2 arguments (a, b), got {}",
                         args.len()
                     )),
+                },
+                "abs" => match args.len() {
+                    1 => Ok(eval_abs(args[0])),
+                    _ => Err(format!("abs: requires 1 argument, got {}", args.len())),
+                },
+                "floor" => match args.len() {
+                    1 => Ok(eval_floor(args[0])),
+                    _ => Err(format!("floor: requires 1 argument, got {}", args.len())),
+                },
+                "ceil" => match args.len() {
+                    1 => Ok(eval_ceil(args[0])),
+                    _ => Err(format!("ceil: requires 1 argument, got {}", args.len())),
+                },
+                "round" => match args.len() {
+                    1 => Ok(eval_round(args[0])),
+                    _ => Err(format!("round: requires 1 argument, got {}", args.len())),
+                },
+                "erf" => match args.len() {
+                    1 => Ok(eval_erf(args[0])),
+                    _ => Err(format!("erf: requires 1 argument, got {}", args.len())),
+                },
+                "erfc" => match args.len() {
+                    1 => Ok(eval_erfc(args[0])),
+                    _ => Err(format!("erfc: requires 1 argument, got {}", args.len())),
+                },
+                "beta" => match args.len() {
+                    2 => eval_beta(args[0], args[1]),
+                    _ => Err(format!("beta: requires 2 arguments, got {}", args.len())),
                 },
                 _ => return Err(format!("Unknown function: {}", token)),
             }?;
