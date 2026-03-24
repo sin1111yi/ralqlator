@@ -126,6 +126,9 @@ fn handle_standard_char(
                 current.push(c);
             } else if is_scientific_notation(current) {
                 current.push(c);
+            } else if current.is_empty() || current.chars().all(|ch| ch.is_alphabetic() || ch == '_') {
+                // Part of an identifier like erf, erfc, etc.
+                current.push(c);
             } else {
                 push_current(tokens, current);
                 tokens.push(c.to_string());

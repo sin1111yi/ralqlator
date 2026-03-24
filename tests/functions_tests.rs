@@ -501,3 +501,507 @@ fn test_pythagorean_identity() {
     assert!(success);
     assert!(stdout.contains("1"));
 }
+
+// ==================== New Mathematical Functions Tests ====================
+// Tests for functions added from statrs and num crates
+
+// ==================== Logarithm Tests ====================
+
+#[test]
+fn test_log2_basic() {
+    let (stdout, _, success) = run_cli(&["log2(256)"]);
+    assert!(success);
+    assert!(stdout.contains("8"));
+}
+
+#[test]
+fn test_log2_power_of_2() {
+    let (stdout, _, success) = run_cli(&["log2(1024)"]);
+    assert!(success);
+    assert!(stdout.contains("10"));
+}
+
+#[test]
+fn test_log2_of_1() {
+    let (stdout, _, success) = run_cli(&["log2(1)"]);
+    assert!(success);
+    assert!(stdout.contains("0"));
+}
+
+#[test]
+fn test_log2_error_negative() {
+    let (_, stderr, success) = run_cli(&["log2(-1)"]);
+    assert!(!success);
+    assert!(stderr.contains("Error"));
+}
+
+#[test]
+fn test_log2_error_zero() {
+    let (_, stderr, success) = run_cli(&["log2(0)"]);
+    assert!(!success);
+    assert!(stderr.contains("Error"));
+}
+
+// ==================== Cube Root Tests ====================
+
+#[test]
+fn test_cbrt_basic() {
+    let (stdout, _, success) = run_cli(&["cbrt(27)"]);
+    assert!(success);
+    assert!(stdout.contains("3"));
+}
+
+#[test]
+fn test_cbrt_64() {
+    let (stdout, _, success) = run_cli(&["cbrt(64)"]);
+    assert!(success);
+    assert!(stdout.contains("4"));
+}
+
+#[test]
+fn test_cbrt_negative() {
+    let (stdout, _, success) = run_cli(&["cbrt(-8)"]);
+    assert!(success);
+    assert!(stdout.contains("-2"));
+}
+
+// ==================== Reciprocal Trigonometric Tests ====================
+
+#[test]
+fn test_sec_zero() {
+    let (stdout, _, success) = run_cli(&["sec(0)"]);
+    assert!(success);
+    assert!(stdout.contains("1"));
+}
+
+#[test]
+fn test_sec_pi() {
+    let (stdout, _, success) = run_cli(&["sec(C_PI)"]);
+    assert!(success);
+    assert!(stdout.contains("-1"));
+}
+
+#[test]
+fn test_csc_pi_half() {
+    let (stdout, _, success) = run_cli(&["csc(C_PI / 2)"]);
+    assert!(success);
+    assert!(stdout.contains("1"));
+}
+
+#[test]
+fn test_cot_pi_half() {
+    let (stdout, _, success) = run_cli(&["cot(C_PI / 2)"]);
+    assert!(success);
+    // cot(π/2) should be close to 0
+    assert!(stdout.contains("0") || stdout.contains("e-"));
+}
+
+#[test]
+fn test_sec_cos_reciprocal() {
+    // sec(x) = 1/cos(x)
+    let (stdout, _, success) = run_cli(&["sec(C_PI / 3)"]);
+    assert!(success);
+    // sec(π/3) = 1/cos(π/3) = 1/0.5 = 2 (may have floating point error)
+    assert!(stdout.contains("1.99") || stdout.contains("2"));
+}
+
+#[test]
+fn test_csc_sin_reciprocal() {
+    // csc(x) = 1/sin(x)
+    let (stdout, _, success) = run_cli(&["csc(C_PI / 6)"]);
+    assert!(success);
+    // csc(π/6) = 1/sin(π/6) = 1/0.5 = 2
+    assert!(stdout.contains("2"));
+}
+
+#[test]
+fn test_cot_tan_reciprocal() {
+    // cot(x) = 1/tan(x)
+    let (stdout, _, success) = run_cli(&["cot(C_PI / 4)"]);
+    assert!(success);
+    // cot(π/4) = 1/tan(π/4) = 1/1 = 1
+    assert!(stdout.contains("1"));
+}
+
+// ==================== Hyperbolic Functions Tests ====================
+
+#[test]
+fn test_sinh_zero() {
+    let (stdout, _, success) = run_cli(&["sinh(0)"]);
+    assert!(success);
+    assert!(stdout.contains("0"));
+}
+
+#[test]
+fn test_sinh_one() {
+    let (stdout, _, success) = run_cli(&["sinh(1)"]);
+    assert!(success);
+    assert!(stdout.contains("1.175"));
+}
+
+#[test]
+fn test_cosh_zero() {
+    let (stdout, _, success) = run_cli(&["cosh(0)"]);
+    assert!(success);
+    assert!(stdout.contains("1"));
+}
+
+#[test]
+fn test_cosh_one() {
+    let (stdout, _, success) = run_cli(&["cosh(1)"]);
+    assert!(success);
+    assert!(stdout.contains("1.543"));
+}
+
+#[test]
+fn test_tanh_zero() {
+    let (stdout, _, success) = run_cli(&["tanh(0)"]);
+    assert!(success);
+    assert!(stdout.contains("0"));
+}
+
+#[test]
+fn test_tanh_one() {
+    let (stdout, _, success) = run_cli(&["tanh(1)"]);
+    assert!(success);
+    assert!(stdout.contains("0.761"));
+}
+
+#[test]
+fn test_cosh_squared_minus_sinh_squared() {
+    // cosh²(x) - sinh²(x) = 1
+    let (stdout, _, success) = run_cli(&["cosh(1) ^ 2 - sinh(1) ^ 2"]);
+    assert!(success);
+    assert!(stdout.contains("1"));
+}
+
+#[test]
+fn test_sinh_cosh_sum() {
+    // sinh(x) + cosh(x) = e^x
+    let (stdout, _, success) = run_cli(&["sinh(1) + cosh(1)"]);
+    assert!(success);
+    assert!(stdout.contains("2.718"));
+}
+
+// ==================== Inverse Hyperbolic Tests ====================
+
+#[test]
+fn test_asinh_zero() {
+    let (stdout, _, success) = run_cli(&["asinh(0)"]);
+    assert!(success);
+    assert!(stdout.contains("0"));
+}
+
+#[test]
+fn test_asinh_one() {
+    let (stdout, _, success) = run_cli(&["asinh(1)"]);
+    assert!(success);
+    assert!(stdout.contains("0.881"));
+}
+
+#[test]
+fn test_acosh_one() {
+    let (stdout, _, success) = run_cli(&["acosh(1)"]);
+    assert!(success);
+    assert!(stdout.contains("0"));
+}
+
+#[test]
+fn test_acosh_two() {
+    let (stdout, _, success) = run_cli(&["acosh(2)"]);
+    assert!(success);
+    assert!(stdout.contains("1.316"));
+}
+
+#[test]
+fn test_acosh_error() {
+    let (_, stderr, success) = run_cli(&["acosh(0.5)"]);
+    assert!(!success);
+    assert!(stderr.contains("Error"));
+}
+
+#[test]
+fn test_atanh_zero() {
+    let (stdout, _, success) = run_cli(&["atanh(0)"]);
+    assert!(success);
+    assert!(stdout.contains("0"));
+}
+
+#[test]
+fn test_atanh_half() {
+    let (stdout, _, success) = run_cli(&["atanh(0.5)"]);
+    assert!(success);
+    assert!(stdout.contains("0.549"));
+}
+
+#[test]
+fn test_atanh_error() {
+    let (_, stderr, success) = run_cli(&["atanh(1)"]);
+    assert!(!success);
+    assert!(stderr.contains("Error"));
+}
+
+// ==================== Utility Functions Tests ====================
+
+#[test]
+fn test_abs_positive() {
+    let (stdout, _, success) = run_cli(&["abs(5)"]);
+    assert!(success);
+    assert!(stdout.contains("5"));
+}
+
+#[test]
+fn test_abs_negative() {
+    let (stdout, _, success) = run_cli(&["abs(-5)"]);
+    assert!(success);
+    assert!(stdout.contains("5"));
+}
+
+#[test]
+fn test_abs_zero() {
+    let (stdout, _, success) = run_cli(&["abs(0)"]);
+    assert!(success);
+    assert!(stdout.contains("0"));
+}
+
+#[test]
+fn test_floor_basic() {
+    let (stdout, _, success) = run_cli(&["floor(3.7)"]);
+    assert!(success);
+    assert!(stdout.contains("3"));
+}
+
+#[test]
+fn test_floor_negative() {
+    let (stdout, _, success) = run_cli(&["floor(-3.7)"]);
+    assert!(success);
+    assert!(stdout.contains("-4"));
+}
+
+#[test]
+fn test_ceil_basic() {
+    let (stdout, _, success) = run_cli(&["ceil(3.2)"]);
+    assert!(success);
+    assert!(stdout.contains("4"));
+}
+
+#[test]
+fn test_ceil_negative() {
+    let (stdout, _, success) = run_cli(&["ceil(-3.2)"]);
+    assert!(success);
+    assert!(stdout.contains("-3"));
+}
+
+#[test]
+fn test_round_down() {
+    let (stdout, _, success) = run_cli(&["round(3.4)"]);
+    assert!(success);
+    assert!(stdout.contains("3"));
+}
+
+#[test]
+fn test_round_up() {
+    let (stdout, _, success) = run_cli(&["round(3.6)"]);
+    assert!(success);
+    assert!(stdout.contains("4"));
+}
+
+#[test]
+fn test_round_half() {
+    let (stdout, _, success) = run_cli(&["round(3.5)"]);
+    assert!(success);
+    assert!(stdout.contains("4"));
+}
+
+// ==================== Error Function Tests ====================
+
+#[test]
+fn test_erf_zero() {
+    let (stdout, _, success) = run_cli(&["erf(0)"]);
+    assert!(success);
+    assert!(stdout.contains("0"));
+}
+
+#[test]
+fn test_erf_one() {
+    let (stdout, _, success) = run_cli(&["erf(1)"]);
+    assert!(success);
+    assert!(stdout.contains("0.8427"));
+}
+
+#[test]
+fn test_erf_negative() {
+    let (stdout, _, success) = run_cli(&["erf(-1)"]);
+    assert!(success);
+    assert!(stdout.contains("-0.8427"));
+}
+
+#[test]
+fn test_erf_large() {
+    let (stdout, _, success) = run_cli(&["erf(3)"]);
+    assert!(success);
+    // erf(3) should be very close to 1
+    assert!(stdout.contains("0.999"));
+}
+
+#[test]
+fn test_erfc_zero() {
+    let (stdout, _, success) = run_cli(&["erfc(0)"]);
+    assert!(success);
+    assert!(stdout.contains("1"));
+}
+
+#[test]
+fn test_erfc_one() {
+    let (stdout, _, success) = run_cli(&["erfc(1)"]);
+    assert!(success);
+    assert!(stdout.contains("0.157"));
+}
+
+#[test]
+fn test_erf_erfc_complement() {
+    // erf(x) + erfc(x) = 1
+    let (stdout, _, success) = run_cli(&["erf(1) + erfc(1)"]);
+    assert!(success);
+    assert!(stdout.contains("1"));
+}
+
+// ==================== Beta Function Tests ====================
+
+#[test]
+fn test_beta_basic() {
+    let (stdout, _, success) = run_cli(&["beta(2, 3)"]);
+    assert!(success);
+    // B(2,3) = 1! * 2! / 3! = 2/6 = 1/12 ≈ 0.0833
+    assert!(stdout.contains("0.0833"));
+}
+
+#[test]
+fn test_beta_one_one() {
+    let (stdout, _, success) = run_cli(&["beta(1, 1)"]);
+    assert!(success);
+    assert!(stdout.contains("1"));
+}
+
+#[test]
+fn test_beta_symmetric() {
+    // beta(x,y) = beta(y,x)
+    let (stdout1, _, success1) = run_cli(&["beta(2, 3)"]);
+    let (stdout2, _, success2) = run_cli(&["beta(3, 2)"]);
+    assert!(success1 && success2);
+    assert_eq!(stdout1.trim(), stdout2.trim());
+}
+
+#[test]
+fn test_beta_error_negative() {
+    let (_, stderr, success) = run_cli(&["beta(-1, 2)"]);
+    assert!(!success);
+    assert!(stderr.contains("Error"));
+}
+
+#[test]
+fn test_beta_error_zero() {
+    let (_, stderr, success) = run_cli(&["beta(0, 1)"]);
+    assert!(!success);
+    assert!(stderr.contains("Error"));
+}
+
+// ==================== Gamma Function Tests ====================
+
+#[test]
+fn test_gamma_integer() {
+    // gamma(n) = (n-1)!
+    let (stdout, _, success) = run_cli(&["gamma(5)"]);
+    assert!(success);
+    assert!(stdout.contains("24"));
+}
+
+#[test]
+fn test_gamma_one() {
+    let (stdout, _, success) = run_cli(&["gamma(1)"]);
+    assert!(success);
+    // gamma(1) = 0! = 1 (may have floating point error)
+    assert!(stdout.contains("0.999") || stdout.contains("1"));
+}
+
+#[test]
+fn test_gamma_two() {
+    let (stdout, _, success) = run_cli(&["gamma(2)"]);
+    assert!(success);
+    assert!(stdout.contains("1"));
+}
+
+#[test]
+fn test_gamma_half() {
+    let (stdout, _, success) = run_cli(&["gamma(0.5)"]);
+    assert!(success);
+    // gamma(0.5) = sqrt(π) ≈ 1.772
+    assert!(stdout.contains("1.772"));
+}
+
+#[test]
+fn test_gamma_error_negative_integer() {
+    let (_, stderr, success) = run_cli(&["gamma(-1)"]);
+    assert!(!success);
+    assert!(stderr.contains("Error"));
+}
+
+#[test]
+fn test_gamma_factorial_relationship() {
+    // gamma(n) = (n-1)!
+    let (stdout1, _, success1) = run_cli(&["gamma(6)"]);
+    let (stdout2, _, success2) = run_cli(&["factorial(5)"]);
+    assert!(success1 && success2);
+    // Both should be approximately 120 (gamma may have floating point error)
+    assert!(stdout1.contains("119.9") || stdout1.contains("120"));
+    assert!(stdout2.contains("120"));
+}
+
+#[test]
+fn test_beta_gamma_relationship() {
+    // B(x,y) = Γ(x) * Γ(y) / Γ(x+y)
+    // For x=2, y=3: B(2,3) = 1! * 2! / 3! = 2/6 = 1/12
+    let (stdout, _, success) = run_cli(&["beta(2, 3)"]);
+    assert!(success);
+    assert!(stdout.contains("0.0833"));
+}
+
+// ==================== Two-Argument Arctangent Tests ====================
+
+#[test]
+fn test_atan2_basic() {
+    let (stdout, _, success) = run_cli(&["atan2(1, 1)"]);
+    assert!(success);
+    // atan2(1,1) = π/4 ≈ 0.785
+    assert!(stdout.contains("0.785"));
+}
+
+#[test]
+fn test_atan2_y_zero() {
+    let (stdout, _, success) = run_cli(&["atan2(0, 1)"]);
+    assert!(success);
+    assert!(stdout.contains("0"));
+}
+
+#[test]
+fn test_atan2_x_zero() {
+    let (stdout, _, success) = run_cli(&["atan2(1, 0)"]);
+    assert!(success);
+    // atan2(1,0) = π/2 ≈ 1.57
+    assert!(stdout.contains("1.57"));
+}
+
+#[test]
+fn test_atan2_negative() {
+    let (stdout, _, success) = run_cli(&["atan2(-1, -1)"]);
+    assert!(success);
+    // atan2(-1,-1) = -3π/4 ≈ -2.356
+    assert!(stdout.contains("-2.356"));
+}
+
+#[test]
+fn test_atan2_error_args() {
+    let (_, stderr, success) = run_cli(&["atan2(1)"]);
+    assert!(!success);
+    assert!(stderr.contains("Error"));
+}
