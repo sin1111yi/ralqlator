@@ -243,7 +243,7 @@ Run all tests:
 cargo test
 ```
 
-The test suite includes 61 test cases covering:
+The test suite includes 59 test cases covering:
 - Basic arithmetic operations
 - Number format parsing
 - Mathematical constants
@@ -258,20 +258,18 @@ The test suite includes 61 test cases covering:
 ```
 ralqlator/
 ├── Cargo.toml              # Project configuration
-├── agent.md                # English documentation for AI agents
-├── agent_zh.md             # Chinese documentation for AI agents
+├── agent_zh.md             # Chinese documentation
 └── src/
     ├── main.rs            # Program entry point
     ├── lib.rs             # Test module
     ├── cli.rs             # CLI argument definitions
-    ├── repl.rs            # Interactive REPL
+    ├── repl.rs            # Interactive REPL with mode switching
     ├── calculator.rs      # Calculation orchestration
     ├── evaluator.rs       # Expression evaluation
     ├── functions.rs       # Mathematical functions
     ├── operator.rs        # Operator definitions
     ├── shunting_yard.rs   # Infix to postfix conversion
-    ├── token.rs           # Lexical analysis
-    └── linked_list.rs     # Linked list data structure
+    └── token.rs           # Lexical analysis
 ```
 
 ## Examples

@@ -21,8 +21,7 @@ raculator/
     ├── functions.rs       # 数学函数具体实现
     ├── operator.rs        # 操作符/函数识别和优先级
     ├── shunting_yard.rs   # 中缀转后缀算法
-    ├── token.rs           # 字符串分词
-    └── linked_list.rs     # 链表数据结构
+    └── token.rs           # 字符串分词
 ```
 
 ## 核心模块说明
@@ -51,7 +50,7 @@ raculator/
 - **函数**:
   - `calculate()`: 标准模式计算（f64）
   - `calculate_bitwise()`: 位运算模式计算（i64）
-- **流程**: 分词 → 常数解析 → 链表存储 → 中缀转后缀 → 求值
+- **流程**: 分词 → 常数解析 → 中缀转后缀 → 求值
 
 ### token.rs
 - **职责**: 词法分析，将输入字符串分割为 token
@@ -120,12 +119,6 @@ raculator/
   - `is_function()`: 判断是否为函数
   - `precedence()`: 运算符优先级
   - `bitwise_precedence()`: 位运算符优先级
-
-### linked_list.rs
-- **职责**: 链表数据结构（按设计要求使用）
-- **结构**:
-  - `Node`: 链表节点
-  - `LinkedList`: 链表结构
 
 ## 功能特性
 
@@ -254,10 +247,6 @@ tokenize() → Vec<String>
     ↓
 resolve_constants() → Vec<String>
     ↓
-LinkedList::push_back() → LinkedList
-    ↓
-to_vec() → Vec<String>
-    ↓
 infix_to_postfix() → Vec<String> (后缀表达式)
     ↓
 eval_postfix() → Result<T, String>
@@ -282,11 +271,10 @@ cargo test
 - 错误处理 (7 个测试)
 - 词法分析 (6 个测试)
 - 语法分析 (3 个测试)
-- 数据结构 (2 个测试)
 - 输出格式 (3 个测试)
 - 集成测试 (5 个测试)
 
-**总计：61 个测试用例**
+**总计：59 个测试用例**
 
 ## 依赖
 
@@ -321,14 +309,11 @@ rustyline = "14.0"                                  # 交互式输入
 
 ## 常见问题
 
-**Q: 为什么使用链表？**
-A: 按设计要求使用链表存储表达式 token，虽然 Vec 更高效，但链表符合教学目的。
-
 **Q: 位运算为什么使用 i64？**
 A: i64 提供足够的位宽，同时支持负数的位运算。
 
 **Q: 如何添加新函数？**
-A: 
+A:
 1. 在 `functions.rs` 中实现函数
 2. 在 `operator.rs` 的 `is_function()` 中添加函数名
 3. 在 `evaluator.rs` 的 `eval_postfix()` 中添加处理逻辑

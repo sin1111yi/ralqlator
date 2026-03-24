@@ -243,7 +243,7 @@ ralqlator info
 cargo test
 ```
 
-测试套件包含 61 个测试用例，覆盖：
+测试套件包含 59 个测试用例，覆盖：
 - 基本算术运算
 - 数字格式解析
 - 数学常数
@@ -258,20 +258,18 @@ cargo test
 ```
 ralqlator/
 ├── Cargo.toml              # 项目配置
-├── agent.md                # AI 助手英文文档
 ├── agent_zh.md             # AI 助手中文文档
 └── src/
     ├── main.rs            # 程序入口
     ├── lib.rs             # 测试模块
     ├── cli.rs             # CLI 参数定义
-    ├── repl.rs            # 交互式 REPL
+    ├── repl.rs            # 交互式 REPL（支持模式切换）
     ├── calculator.rs      # 计算编排
     ├── evaluator.rs       # 表达式求值
     ├── functions.rs       # 数学函数
     ├── operator.rs        # 运算符定义
     ├── shunting_yard.rs   # 中缀转后缀算法
-    ├── token.rs           # 词法分析
-    └── linked_list.rs     # 链表数据结构
+    └── token.rs           # 词法分析
 ```
 
 ## 示例
