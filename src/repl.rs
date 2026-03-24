@@ -195,6 +195,23 @@ pub fn print_functions_help() {
     println!("  sum(a,b,...)       Sum of multiple arguments");
 }
 
+/// Print help for user-defined functions
+pub fn print_user_functions_help(user_functions: &UserFunctions) {
+    let funcs = user_functions.lock().unwrap();
+    if funcs.is_empty() {
+        println!("No user-defined functions.");
+        return;
+    }
+    
+    println!("User-defined Functions:");
+    println!();
+    for (name, (params, expr)) in funcs.iter() {
+        let params_str = params.join(", ");
+        println!("  {}({}) = {}", name, params_str, expr);
+    }
+    println!();
+}
+
 /// Print help for operators
 pub fn print_operators_help() {
     println!("Operators:");
@@ -291,6 +308,7 @@ fn print_tab_help() {
     println!("  create function   - Define custom function: create function f(x,y) = x+y");
     println!("  create sequence   - Define sequence: create sequence a(n) = n*(n+1)/2");
     println!("  Call function     - Use: name(args), e.g., f(3,4) or a(10)");
+    println!("  functions         - Show built-in and user-defined functions");
     println!("  q/quit            - Exit");
     println!();
     println!("  Tab               - Command completion");
@@ -451,6 +469,7 @@ fn run_repl_with_mode(initial_mode: CalcMode) {
             let args: Vec<&str> = input_lower.split_whitespace().collect();
             if args.len() == 1 {
                 print_all_help();
+                print_user_functions_help(&user_functions);
             } else if args.len() == 2 {
                 match CalcMode::from_str(args[1]) {
                     Some(CalcMode::Standard) => {
@@ -480,26 +499,8 @@ fn run_repl_with_mode(initial_mode: CalcMode) {
             println!();
             continue;
         } else if input_lower == "functions" || input_lower.starts_with("functions ") {
-            let args: Vec<&str> = input_lower.split_whitespace().collect();
-            if args.len() == 1 {
-                print_functions_help();
-            } else if args.len() == 2 {
-                match CalcMode::from_str(args[1]) {
-                    Some(CalcMode::Standard) => print_functions_help(),
-                    Some(CalcMode::Bitwise) => {
-                        println!("Mathematical functions are not available in bitwise mode.");
-                        println!("Bitwise mode only supports integer operations:");
-                        print_bitwise_operators_help();
-                    }
-                    None => {
-                        eprintln!("Usage: functions [standard|bitwise]\n");
-                        continue;
-                    }
-                }
-            } else {
-                eprintln!("Usage: functions [standard|bitwise]\n");
-                continue;
-            }
+            print_functions_help();
+            print_user_functions_help(&user_functions);
             println!();
             continue;
         } else if input_lower == "operators" || input_lower.starts_with("operators ") {
