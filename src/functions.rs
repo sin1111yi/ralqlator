@@ -293,3 +293,118 @@ pub fn eval_beta(x: f64, y: f64) -> Result<f64, String> {
 //     }
 //     Ok(statrs::elliptic::E(k * k))
 // }
+
+// ==================== BigInt Functions ====================
+
+use num_bigint::{BigInt, BigUint};
+use num_traits::{One, Zero};
+
+/// Calculate factorial using BigInt for arbitrary precision
+/// Can calculate factorials much larger than 170!
+pub fn eval_factorial_bigint(n: u64) -> String {
+    let mut result = BigUint::one();
+    for i in 2..=n {
+        result *= i;
+    }
+    result.to_string()
+}
+
+/// Calculate power using BigInt for arbitrary precision
+/// Returns base^exp as a string
+pub fn eval_pow_bigint(base: i64, exp: u32) -> String {
+    let big_base = BigInt::from(base);
+    big_base.pow(exp).to_string()
+}
+
+/// Calculate combinations: C(n, k) = n! / (k! * (n-k)!)
+pub fn eval_combinations(n: u64, k: u64) -> Result<String, String> {
+    if k > n {
+        return Err("combinations: k must be <= n".to_string());
+    }
+    
+    // Use the multiplicative formula for better efficiency
+    // C(n, k) = n * (n-1) * ... * (n-k+1) / (k * (k-1) * ... * 1)
+    let mut result = BigUint::one();
+    for i in 0..k {
+        result *= n - i;
+        result /= i + 1;
+    }
+    Ok(result.to_string())
+}
+
+/// Calculate permutations: P(n, k) = n! / (n-k)!
+pub fn eval_permutations(n: u64, k: u64) -> Result<String, String> {
+    if k > n {
+        return Err("permutations: k must be <= n".to_string());
+    }
+    
+    // P(n, k) = n * (n-1) * ... * (n-k+1)
+    let mut result = BigUint::one();
+    for i in 0..k {
+        result *= n - i;
+    }
+    Ok(result.to_string())
+}
+
+/// Calculate greatest common divisor using BigInt
+pub fn eval_gcd(a: i64, b: i64) -> String {
+    let big_a = BigInt::from(a.abs());
+    let big_b = BigInt::from(b.abs());
+    gcd(&big_a, &big_b).to_string()
+}
+
+/// Calculate least common multiple using BigInt
+pub fn eval_lcm(a: i64, b: i64) -> String {
+    let big_a = BigInt::from(a.abs());
+    let big_b = BigInt::from(b.abs());
+    lcm(&big_a, &big_b).to_string()
+}
+
+/// GCD helper function for BigInt
+fn gcd(a: &BigInt, b: &BigInt) -> BigInt {
+    let mut a = a.clone();
+    let mut b = b.clone();
+    while !b.is_zero() {
+        let temp = b.clone();
+        b = &a % &b;
+        a = temp;
+    }
+    a
+}
+
+/// LCM helper function for BigInt
+fn lcm(a: &BigInt, b: &BigInt) -> BigInt {
+    if a.is_zero() || b.is_zero() {
+        return BigInt::zero();
+    }
+    (a * b) / gcd(a, b)
+}
+
+/// Check if a number is prime (simple trial division for demonstration)
+pub fn eval_is_prime(n: u64) -> bool {
+    if n < 2 {
+        return false;
+    }
+    if n == 2 {
+        return true;
+    }
+    if n % 2 == 0 {
+        return false;
+    }
+    let sqrt_n = (n as f64).sqrt() as u64;
+    for i in (3..=sqrt_n).step_by(2) {
+        if n % i == 0 {
+            return false;
+        }
+    }
+    true
+}
+
+/// Get the next prime number greater than n
+pub fn eval_next_prime(n: u64) -> String {
+    let mut candidate = n + 1;
+    while !eval_is_prime(candidate) {
+        candidate += 1;
+    }
+    candidate.to_string()
+}

@@ -11,4 +11,5 @@ rustyline = "14.0"
 # Mathematical libraries
 num = "0.4"                    # General number traits and utilities
 num-traits = "0.2"             # Numeric traits
+num-bigint = "0.4"             # BigInt and BigUint for arbitrary precision integers
 statrs = "0.17"                # Statistical functions and special functions

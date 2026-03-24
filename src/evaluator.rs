@@ -20,14 +20,17 @@
 
 use crate::functions::{
     eval_abs, eval_acos, eval_acosh, eval_asin, eval_asinh, eval_atan, eval_atan2, eval_atanh,
-    eval_beta, eval_cbrt, eval_ceil, eval_cos, eval_cosh, eval_cot, eval_csc, eval_erf,
+    eval_beta, eval_cbrt, eval_ceil, eval_combinations, eval_cos, eval_cosh, eval_cot, eval_csc, eval_erf,
     eval_erfc, eval_factorial, eval_floor, eval_gamma,
-    eval_lg, eval_ln, eval_log2, eval_log_base, eval_mod, eval_pow, eval_product, eval_round, eval_sec,
+    eval_lg, eval_ln, eval_log2, eval_log_base, eval_mod, eval_permutations, eval_pow, eval_product, eval_round, eval_sec,
     eval_sin, eval_sinh, eval_sqrt, eval_sum, eval_tan, eval_tanh,
 };
 use crate::operator::{
     is_comparison_operator, is_function, is_operator, is_postfix_unary_operator,
 };
+
+// Import BigInt functions directly for evaluator
+use crate::functions;
 
 /// Special result values for comparison operators
 /// These are special NaN values that can be detected and formatted specially
@@ -287,6 +290,87 @@ pub fn eval_postfix(postfix: Vec<String>) -> Result<f64, String> {
                 "beta" => match args.len() {
                     2 => eval_beta(args[0], args[1]),
                     _ => Err(format!("beta: requires 2 arguments, got {}", args.len())),
+                },
+                // BigInt functions - return strings, push as special marker
+                "bfactorial" => match args.len() {
+                    1 => {
+                        if args[0] < 0.0 || args[0].fract() != 0.0 {
+                            return Err("bfactorial: requires non-negative integer".to_string());
+                        }
+                        if args[0] > 10000.0 {
+                            return Err("bfactorial: argument too large (max 10000)".to_string());
+                        }
+                        Ok(functions::eval_factorial_bigint(args[0] as u64).parse().unwrap())
+                    },
+                    _ => Err(format!("bfactorial: requires 1 argument, got {}", args.len())),
+                },
+                "bpow" => match args.len() {
+                    2 => {
+                        if args[1] < 0.0 || args[1].fract() != 0.0 {
+                            return Err("bpow: exponent must be non-negative integer".to_string());
+                        }
+                        if args[1] > 1000.0 {
+                            return Err("bpow: exponent too large (max 1000)".to_string());
+                        }
+                        Ok(functions::eval_pow_bigint(args[0] as i64, args[1] as u32).parse().unwrap())
+                    },
+                    _ => Err(format!("bpow: requires 2 arguments, got {}", args.len())),
+                },
+                "comb" => match args.len() {
+                    2 => {
+                        if args[0] < 0.0 || args[0].fract() != 0.0 || args[1] < 0.0 || args[1].fract() != 0.0 {
+                            return Err("comb: requires non-negative integers".to_string());
+                        }
+                        if args[0] > 10000.0 || args[1] > 10000.0 {
+                            return Err("comb: arguments too large (max 10000)".to_string());
+                        }
+                        match eval_combinations(args[0] as u64, args[1] as u64) {
+                            Ok(s) => Ok(s.parse().unwrap()),
+                            Err(e) => Err(e),
+                        }
+                    },
+                    _ => Err(format!("comb: requires 2 arguments, got {}", args.len())),
+                },
+                "perm" => match args.len() {
+                    2 => {
+                        if args[0] < 0.0 || args[0].fract() != 0.0 || args[1] < 0.0 || args[1].fract() != 0.0 {
+                            return Err("perm: requires non-negative integers".to_string());
+                        }
+                        if args[0] > 10000.0 || args[1] > 10000.0 {
+                            return Err("perm: arguments too large (max 10000)".to_string());
+                        }
+                        match eval_permutations(args[0] as u64, args[1] as u64) {
+                            Ok(s) => Ok(s.parse().unwrap()),
+                            Err(e) => Err(e),
+                        }
+                    },
+                    _ => Err(format!("perm: requires 2 arguments, got {}", args.len())),
+                },
+                "gcd" => match args.len() {
+                    2 => Ok(functions::eval_gcd(args[0] as i64, args[1] as i64).parse().unwrap()),
+                    _ => Err(format!("gcd: requires 2 arguments, got {}", args.len())),
+                },
+                "lcm" => match args.len() {
+                    2 => Ok(functions::eval_lcm(args[0] as i64, args[1] as i64).parse().unwrap()),
+                    _ => Err(format!("lcm: requires 2 arguments, got {}", args.len())),
+                },
+                "isprime" => match args.len() {
+                    1 => {
+                        if args[0] < 0.0 || args[0].fract() != 0.0 {
+                            return Err("isprime: requires non-negative integer".to_string());
+                        }
+                        Ok(if functions::eval_is_prime(args[0] as u64) { 1.0 } else { 0.0 })
+                    },
+                    _ => Err(format!("isprime: requires 1 argument, got {}", args.len())),
+                },
+                "nextprime" => match args.len() {
+                    1 => {
+                        if args[0] < 0.0 || args[0].fract() != 0.0 {
+                            return Err("nextprime: requires non-negative integer".to_string());
+                        }
+                        Ok(functions::eval_next_prime(args[0] as u64).parse().unwrap())
+                    },
+                    _ => Err(format!("nextprime: requires 1 argument, got {}", args.len())),
                 },
                 _ => return Err(format!("Unknown function: {}", token)),
             }?;

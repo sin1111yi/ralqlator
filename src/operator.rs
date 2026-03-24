@@ -44,6 +44,8 @@ const FUNCTIONS: &[&str] = &[
     "abs", "floor", "ceil", "round",
     "erf", "erfc",
     "beta",
+    // BigInt functions
+    "bfactorial", "bpow", "comb", "perm", "gcd", "lcm", "isprime", "nextprime",
 ];
 
 /// Check if token is an operator
