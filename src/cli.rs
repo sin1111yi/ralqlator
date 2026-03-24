@@ -24,62 +24,68 @@ use clap::{Parser, Subcommand};
 #[command(name = "ralqlator")]
 #[command(about = "A powerful command-line calculator")]
 #[command(long_about = "Ralqlator is a feature-rich calculator supporting arithmetic, \
-    bitwise operations, mathematical functions, and multiple number formats.")]
+    bitwise operations, mathematical functions, user-defined functions/constants, \
+    and multiple number formats.")]
 pub struct Cli {
     #[command(subcommand)]
     pub command: Option<Commands>,
 
     /// Expression to calculate
-    #[arg(value_name = "EXPR")]
+    #[arg(value_name = "EXPR", help_heading = "Positional Arguments")]
     pub expression: Option<String>,
 
-    /// Expression to calculate (shorthand)
-    #[arg(short = 'r', long = "row", value_name = "EXPR")]
+    /// Expression to calculate (shorthand for -r)
+    #[arg(short = 'r', long = "row", value_name = "EXPR", help_heading = "Positional Arguments")]
     pub row: Option<String>,
 
     /// Output result in hexadecimal format
-    #[arg(short = 'x', long = "hex")]
+    #[arg(short = 'x', long = "hex", help_heading = "Output Format Options")]
     pub hex: bool,
 
     /// Output result in octal format
-    #[arg(short = 'o', long = "oct")]
+    #[arg(short = 'o', long = "oct", help_heading = "Output Format Options")]
     pub oct: bool,
 
     /// Output result in binary format
-    #[arg(short = 'b', long = "bin")]
+    #[arg(short = 'b', long = "bin", help_heading = "Output Format Options")]
     pub bin: bool,
 
-    /// Bitwise operation mode
-    #[arg(short = 'B', long = "bits")]
+    /// Bitwise operation mode (integer operations)
+    #[arg(short = 'B', long = "bits", help_heading = "Mode Options")]
     pub bits: bool,
 
     /// Show help for functions
-    #[arg(short = 'F', long = "functions", action = clap::ArgAction::SetTrue)]
+    #[arg(short = 'F', long = "functions", action = clap::ArgAction::SetTrue, help_heading = "Help Options")]
     pub show_functions: bool,
 
     /// Show help for operators
-    #[arg(short = 'O', long = "operators", action = clap::ArgAction::SetTrue)]
+    #[arg(short = 'O', long = "operators", action = clap::ArgAction::SetTrue, help_heading = "Help Options")]
     pub show_operators: bool,
 
     /// Show help for number formats
-    #[arg(short = 'N', long = "formats", action = clap::ArgAction::SetTrue)]
+    #[arg(short = 'N', long = "formats", action = clap::ArgAction::SetTrue, help_heading = "Help Options")]
     pub show_formats: bool,
 
     /// Show help for constants
-    #[arg(short = 'C', long = "constants", action = clap::ArgAction::SetTrue)]
+    #[arg(short = 'C', long = "constants", action = clap::ArgAction::SetTrue, help_heading = "Help Options")]
     pub show_constants: bool,
 }
 
 #[derive(Subcommand)]
 pub enum Commands {
     /// Show supported mathematical functions
+    #[command(long_about = "Show supported mathematical functions.\n\nFor more details, use 'help functions' in interactive mode.")]
     Functions,
     /// Show supported operators
+    #[command(long_about = "Show supported operators (standard and bitwise).\n\nFor more details, use 'help operators' in interactive mode.")]
     Operators,
     /// Show supported number formats
+    #[command(long_about = "Show supported number formats (decimal, binary, octal, hex).\n\nFor more details, use 'help formats' in interactive mode.")]
     Formats,
     /// Show mathematical constants
+    #[command(long_about = "Show mathematical constants (C_PI, C_E).\n\nFor more details, use 'help constants' in interactive mode.")]
     Constants,
     /// Show all help information
+    #[command(long_about = "Show all help information including operators, functions, formats, and constants.\n\nFor interactive mode commands, use 'help' in interactive mode.")]
     Info,
 }

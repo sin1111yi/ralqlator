@@ -15,70 +15,97 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+//! Operator definitions and utility functions
+//!
+//! This module provides operator recognition, precedence, and associativity functions.
+
+/// List of all standard operators
+const STANDARD_OPERATORS: &[&str] = &[
+    "+", "-", "*", "/", "%", "^", "!", "&", "|", "<<", ">>", "<", ">", "=", "==",
+];
+
+/// List of comparison operators
+const COMPARISON_OPERATORS: &[&str] = &["<", ">", "=", "=="];
+
+/// List of bitwise operators
+const BITWISE_OPERATORS: &[&str] = &["&", "|", "^", "<<", ">>", "~"];
+
+/// List of unary operators
+const UNARY_OPERATORS: &[&str] = &["~", "!"];
+
+/// List of supported functions
+const FUNCTIONS: &[&str] = &[
+    "lg", "log", "ln", "sqrt", "pow", "sin", "cos", "tan", "asin", "acos", "atan", "mod",
+    "factorial", "sum", "prod",
+];
+
 /// Check if token is an operator
+#[inline]
 pub fn is_operator(token: &str) -> bool {
-    matches!(
-        token,
-        "+" | "-" | "*" | "/" | "%" | "^" | "!" | "&" | "|" | "<<" | ">>"
-            | "<" | ">" | "=" | "=="
-    )
+    STANDARD_OPERATORS.contains(&token)
 }
 
 /// Check if token is a comparison operator
+#[inline]
 pub fn is_comparison_operator(token: &str) -> bool {
-    matches!(token, "<" | ">" | "=" | "==")
+    COMPARISON_OPERATORS.contains(&token)
 }
 
 /// Check if token is a bitwise operator
+#[inline]
 pub fn is_bitwise_operator(token: &str) -> bool {
-    matches!(token, "&" | "|" | "^" | "<<" | ">>" | "~")
+    BITWISE_OPERATORS.contains(&token)
 }
 
 /// Check if token is a unary operator
+#[inline]
 pub fn is_unary_operator(token: &str) -> bool {
-    matches!(token, "~" | "!")
+    UNARY_OPERATORS.contains(&token)
 }
 
 /// Check if token is a postfix unary operator
+#[inline]
 pub fn is_postfix_unary_operator(token: &str) -> bool {
     token == "!"
 }
 
 /// Check if token is a function
+#[inline]
 pub fn is_function(token: &str) -> bool {
-    matches!(
-        token,
-        "lg" | "log" | "ln" | "sqrt" | "pow" | "sin" | "cos" | "tan"
-            | "asin" | "acos" | "atan" | "mod" | "factorial" | "sum" | "prod"
-    )
+    FUNCTIONS.contains(&token)
 }
 
 /// Operator precedence (standard mode)
+/// Higher value = higher precedence
+#[inline]
 pub fn precedence(op: &str) -> u8 {
     match op {
-        "=" | "==" => 0, // Comparison operators (lowest precedence)
-        "<" | ">" => 0,  // Comparison operators (lowest precedence)
+        "=" | "==" | "<" | ">" => 0, // Comparison operators (lowest)
         "+" | "-" => 1,
         "*" | "/" | "%" => 2,
         "^" => 3,
-        "!" => 4, // Postfix unary has highest precedence
+        "!" => 4, // Postfix unary (highest)
         _ => 0,
     }
 }
 
 /// Operator precedence (bitwise mode)
+/// Higher value = higher precedence
+#[inline]
 pub fn bitwise_precedence(op: &str) -> u8 {
     match op {
-        "|" => 1, // lowest
+        "|" => 1,                // lowest
         "^" => 2,
         "&" => 3,
         "<<" | ">>" => 4,
-        "~" => 5, // unary, highest
+        "~" | "NEG" => 5,        // unary (highest)
         _ => 0,
     }
 }
 
-/// Check operator associativity (true for left-associative, false for right-associative)
+/// Check operator associativity
+/// Returns `true` for left-associative, `false` for right-associative
+#[inline]
 pub fn is_left_associative(op: &str) -> bool {
     op != "^" // Exponentiation is right-associative
 }
