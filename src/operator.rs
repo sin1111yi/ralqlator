@@ -43,7 +43,7 @@ pub fn is_function(token: &str) -> bool {
     matches!(
         token,
         "lg" | "log" | "ln" | "sqrt" | "pow" | "sin" | "cos" | "tan"
-            | "asin" | "acos" | "atan" | "mod" | "factorial" | "sum"
+            | "asin" | "acos" | "atan" | "mod" | "factorial" | "sum" | "prod"
     )
 }
 

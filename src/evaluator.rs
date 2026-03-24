@@ -27,6 +27,9 @@ pub fn eval_postfix(postfix: Vec<String>) -> Result<f64, String> {
     let mut arg_stack: Vec<Vec<f64>> = Vec::new();
 
     for token in postfix {
+        if token.starts_with("ERROR:") {
+            return Err(token);
+        }
         if token == "," {
             // Comma: move current stack top to arg_stack as a completed argument
             if let Some(val) = stack.pop() {

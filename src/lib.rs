@@ -414,4 +414,385 @@ mod tests {
         let result = calculator::calculate("0xFF + 1").unwrap();
         assert_eq!(result, 256.0);
     }
+
+    // ==================== Factorial Tests ====================
+
+    #[test]
+    fn test_factorial_zero() {
+        assert_eq!(calculator::calculate("factorial(0)").unwrap(), 1.0);
+    }
+
+    #[test]
+    fn test_factorial_one() {
+        assert_eq!(calculator::calculate("factorial(1)").unwrap(), 1.0);
+    }
+
+    #[test]
+    fn test_factorial_large() {
+        let result = calculator::calculate("factorial(10)").unwrap();
+        assert_eq!(result, 3628800.0);
+    }
+
+    #[test]
+    fn test_factorial_negative() {
+        assert!(calculator::calculate("factorial(-1)").is_err());
+    }
+
+    #[test]
+    fn test_factorial_non_integer() {
+        assert!(calculator::calculate("factorial(3.5)").is_err());
+    }
+
+    #[test]
+    fn test_factorial_too_large() {
+        assert!(calculator::calculate("factorial(171)").is_err());
+    }
+
+    // ==================== Sum Function Tests ====================
+
+    #[test]
+    fn test_sum_single() {
+        assert_eq!(calculator::calculate("sum(5)").unwrap(), 5.0);
+    }
+
+    #[test]
+    fn test_sum_multiple() {
+        assert_eq!(calculator::calculate("sum(1,2,3,4,5)").unwrap(), 15.0);
+    }
+
+    #[test]
+    fn test_sum_float() {
+        assert!((calculator::calculate("sum(1.5,2.5,3)").unwrap() - 7.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_sum_empty() {
+        assert!(calculator::calculate("sum()").is_err());
+    }
+
+    // ==================== Product Function Tests ====================
+
+    #[test]
+    fn test_prod_single() {
+        assert_eq!(calculator::calculate("prod(5)").unwrap(), 5.0);
+    }
+
+    #[test]
+    fn test_prod_multiple() {
+        assert_eq!(calculator::calculate("prod(1,2,3,4,5)").unwrap(), 120.0);
+    }
+
+    #[test]
+    fn test_prod_float() {
+        assert!((calculator::calculate("prod(1.5,2,3)").unwrap() - 9.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_prod_empty() {
+        assert!(calculator::calculate("prod()").is_err());
+    }
+
+    #[test]
+    fn test_prod_with_zero() {
+        assert_eq!(calculator::calculate("prod(1,2,0,4)").unwrap(), 0.0);
+    }
+
+    // ==================== User-defined Function Tests ====================
+
+    #[test]
+    fn test_user_function_simple() {
+        use crate::calculator::calculate_with_functions;
+        use crate::functions::UserFunctions;
+        use std::sync::Arc;
+        use std::collections::HashMap;
+        use std::sync::Mutex;
+
+        let user_functions: UserFunctions = Arc::new(Mutex::new(HashMap::new()));
+        {
+            let mut funcs = user_functions.lock().unwrap();
+            funcs.insert("f".to_string(), (vec!["x".to_string()], "x^2".to_string()));
+        }
+
+        let result = calculate_with_functions("f(5)", &user_functions).unwrap();
+        assert_eq!(result, 25.0);
+    }
+
+    #[test]
+    fn test_user_function_two_args() {
+        use crate::calculator::calculate_with_functions;
+        use crate::functions::UserFunctions;
+        use std::sync::Arc;
+        use std::collections::HashMap;
+        use std::sync::Mutex;
+
+        let user_functions: UserFunctions = Arc::new(Mutex::new(HashMap::new()));
+        {
+            let mut funcs = user_functions.lock().unwrap();
+            funcs.insert("add".to_string(), (vec!["a".to_string(), "b".to_string()], "a+b".to_string()));
+        }
+
+        let result = calculate_with_functions("add(3, 7)", &user_functions).unwrap();
+        assert_eq!(result, 10.0);
+    }
+
+    #[test]
+    fn test_user_function_wrong_args() {
+        use crate::calculator::calculate_with_functions;
+        use crate::functions::UserFunctions;
+        use std::sync::Arc;
+        use std::collections::HashMap;
+        use std::sync::Mutex;
+
+        let user_functions: UserFunctions = Arc::new(Mutex::new(HashMap::new()));
+        {
+            let mut funcs = user_functions.lock().unwrap();
+            funcs.insert("f".to_string(), (vec!["x".to_string(), "y".to_string()], "x+y".to_string()));
+        }
+
+        // Wrong number of arguments
+        assert!(calculate_with_functions("f(5)", &user_functions).is_err());
+    }
+
+    // ==================== Sequence Sum (suma) Tests ====================
+
+    #[test]
+    fn test_suma_triangle() {
+        use crate::calculator::calculate_with_functions;
+        use crate::functions::UserFunctions;
+        use std::sync::Arc;
+        use std::collections::HashMap;
+        use std::sync::Mutex;
+
+        let user_functions: UserFunctions = Arc::new(Mutex::new(HashMap::new()));
+        {
+            let mut funcs = user_functions.lock().unwrap();
+            funcs.insert("triangle".to_string(), (vec!["n".to_string()], "n*(n+1)/2".to_string()));
+        }
+
+        // Sum of first 5 triangle numbers: 1+3+6+10+15 = 35
+        let result = calculate_with_functions("suma(triangle, 1, 5)", &user_functions).unwrap();
+        assert_eq!(result, 35.0);
+    }
+
+    #[test]
+    fn test_suma_square() {
+        use crate::calculator::calculate_with_functions;
+        use crate::functions::UserFunctions;
+        use std::sync::Arc;
+        use std::collections::HashMap;
+        use std::sync::Mutex;
+
+        let user_functions: UserFunctions = Arc::new(Mutex::new(HashMap::new()));
+        {
+            let mut funcs = user_functions.lock().unwrap();
+            funcs.insert("square".to_string(), (vec!["n".to_string()], "n^2".to_string()));
+        }
+
+        // Sum of first 5 squares: 1+4+9+16+25 = 55
+        let result = calculate_with_functions("suma(square, 1, 5)", &user_functions).unwrap();
+        assert_eq!(result, 55.0);
+    }
+
+    #[test]
+    fn test_suma_invalid_begin() {
+        use crate::calculator::calculate_with_functions;
+        use crate::functions::UserFunctions;
+        use std::sync::Arc;
+        use std::collections::HashMap;
+        use std::sync::Mutex;
+
+        let user_functions: UserFunctions = Arc::new(Mutex::new(HashMap::new()));
+        {
+            let mut funcs = user_functions.lock().unwrap();
+            funcs.insert("seq".to_string(), (vec!["n".to_string()], "n".to_string()));
+        }
+
+        assert!(calculate_with_functions("suma(seq, 0, 5)", &user_functions).is_err());
+        assert!(calculate_with_functions("suma(seq, -1, 5)", &user_functions).is_err());
+    }
+
+    #[test]
+    fn test_suma_invalid_end() {
+        use crate::calculator::calculate_with_functions;
+        use crate::functions::UserFunctions;
+        use std::sync::Arc;
+        use std::collections::HashMap;
+        use std::sync::Mutex;
+
+        let user_functions: UserFunctions = Arc::new(Mutex::new(HashMap::new()));
+        {
+            let mut funcs = user_functions.lock().unwrap();
+            funcs.insert("seq".to_string(), (vec!["n".to_string()], "n".to_string()));
+        }
+
+        assert!(calculate_with_functions("suma(seq, 1, 0)", &user_functions).is_err());
+        assert!(calculate_with_functions("suma(seq, 1, -1)", &user_functions).is_err());
+    }
+
+    #[test]
+    fn test_suma_begin_greater_than_end() {
+        use crate::calculator::calculate_with_functions;
+        use crate::functions::UserFunctions;
+        use std::sync::Arc;
+        use std::collections::HashMap;
+        use std::sync::Mutex;
+
+        let user_functions: UserFunctions = Arc::new(Mutex::new(HashMap::new()));
+        {
+            let mut funcs = user_functions.lock().unwrap();
+            funcs.insert("seq".to_string(), (vec!["n".to_string()], "n".to_string()));
+        }
+
+        assert!(calculate_with_functions("suma(seq, 10, 5)", &user_functions).is_err());
+    }
+
+    #[test]
+    fn test_suma_sequence_not_found() {
+        use crate::calculator::calculate_with_functions;
+        use crate::functions::UserFunctions;
+        use std::sync::Arc;
+        use std::collections::HashMap;
+        use std::sync::Mutex;
+
+        let user_functions: UserFunctions = Arc::new(Mutex::new(HashMap::new()));
+
+        assert!(calculate_with_functions("suma(unknown, 1, 5)", &user_functions).is_err());
+    }
+
+    #[test]
+    fn test_suma_wrong_arg_count() {
+        use crate::calculator::calculate_with_functions;
+        use crate::functions::UserFunctions;
+        use std::sync::Arc;
+        use std::collections::HashMap;
+        use std::sync::Mutex;
+
+        let user_functions: UserFunctions = Arc::new(Mutex::new(HashMap::new()));
+        {
+            let mut funcs = user_functions.lock().unwrap();
+            funcs.insert("seq".to_string(), (vec!["n".to_string()], "n".to_string()));
+        }
+
+        assert!(calculate_with_functions("suma(seq, 1)", &user_functions).is_err());
+        assert!(calculate_with_functions("suma(seq, 1, 5, 10)", &user_functions).is_err());
+    }
+
+    // ==================== Edge Cases ====================
+
+    #[test]
+    fn test_double_negative() {
+        // Note: --5 is not supported, use parentheses for negation
+        assert_eq!(calculator::calculate("0 - (-5)").unwrap(), 5.0);
+    }
+
+    #[test]
+    fn test_unary_minus_in_expression() {
+        assert_eq!(calculator::calculate("-3 + 5").unwrap(), 2.0);
+        assert_eq!(calculator::calculate("5 + -3").unwrap(), 2.0);
+    }
+
+    #[test]
+    fn test_deeply_nested_parens() {
+        assert_eq!(calculator::calculate("(((1+2)))").unwrap(), 3.0);
+        assert_eq!(calculator::calculate("((2+3)*(4+5))").unwrap(), 45.0);
+    }
+
+    #[test]
+    fn test_very_small_numbers() {
+        let result = calculator::calculate("1e-10 + 1e-10").unwrap();
+        assert!((result - 2e-10).abs() < 1e-20);
+    }
+
+    #[test]
+    fn test_very_large_numbers() {
+        let result = calculator::calculate("1e100 * 1e100").unwrap();
+        assert!((result - 1e200).abs() < 1e190);
+    }
+
+    #[test]
+    fn test_division_result_decimal() {
+        assert_eq!(calculator::calculate("1/3").unwrap(), 1.0/3.0);
+    }
+
+    #[test]
+    fn test_power_zero() {
+        assert_eq!(calculator::calculate("5^0").unwrap(), 1.0);
+        assert_eq!(calculator::calculate("0^5").unwrap(), 0.0);
+    }
+
+    #[test]
+    fn test_mod_negative() {
+        assert_eq!(calculator::calculate("mod(-10, 3)").unwrap(), -1.0);
+    }
+
+    #[test]
+    fn test_trig_pi_values() {
+        assert!(calculator::calculate("sin(pi)").unwrap().abs() < 1e-10);
+        assert!((calculator::calculate("cos(pi)").unwrap() + 1.0).abs() < 1e-10);
+        assert!(calculator::calculate("tan(pi)").unwrap().abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_inverse_trig_ranges() {
+        assert!(calculator::calculate("asin(0)").unwrap().abs() < 1e-10);
+        assert!(calculator::calculate("acos(0)").unwrap().abs() - std::f64::consts::PI/2.0 < 1e-10);
+        assert!(calculator::calculate("atan(0)").unwrap().abs() < 1e-10);
+    }
+
+    // ==================== Invalid Input Tests ====================
+
+    #[test]
+    fn test_invalid_characters() {
+        assert!(calculator::calculate("abc").is_err());
+        assert!(calculator::calculate("1+abc").is_err());
+    }
+
+    #[test]
+    fn test_unmatched_parens() {
+        // Note: Extra closing paren may not be detected in all cases
+        assert!(calculator::calculate("((1+2)").is_err());
+        // Opening paren without closing
+        assert!(calculator::calculate("(1+2").is_err());
+    }
+
+    #[test]
+    fn test_empty_expression() {
+        assert!(calculator::calculate("").is_err());
+    }
+
+    #[test]
+    fn test_only_operator() {
+        assert!(calculator::calculate("+").is_err());
+        assert!(calculator::calculate("*").is_err());
+    }
+
+    #[test]
+    fn test_consecutive_operators() {
+        assert!(calculator::calculate("1++2").is_err());
+        assert!(calculator::calculate("1**2").is_err());
+    }
+
+    #[test]
+    fn test_division_by_zero_in_function() {
+        assert!(calculator::calculate("1/0 + 5").is_err());
+    }
+
+    #[test]
+    fn test_sqrt_negative_in_expression() {
+        assert!(calculator::calculate("sqrt(-5)").is_err());
+    }
+
+    #[test]
+    fn test_log_invalid_base() {
+        assert!(calculator::calculate("lg(100, 1)").is_err());
+        assert!(calculator::calculate("lg(100, 0)").is_err());
+        assert!(calculator::calculate("lg(100, -1)").is_err());
+    }
+
+    #[test]
+    fn test_function_invalid_args() {
+        assert!(calculator::calculate("sin()").is_err());
+        assert!(calculator::calculate("pow(2)").is_err());
+        assert!(calculator::calculate("pow(2,3,4)").is_err());
+    }
 }

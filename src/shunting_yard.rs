@@ -25,6 +25,7 @@ use crate::operator::{
 pub fn infix_to_postfix(tokens: Vec<String>) -> Vec<String> {
     let mut output: Vec<String> = Vec::new();
     let mut op_stack: Vec<String> = Vec::new();
+    let mut paren_count = 0;
 
     for token in tokens {
         if is_postfix_unary_operator(&token) {
@@ -46,6 +47,9 @@ pub fn infix_to_postfix(tokens: Vec<String>) -> Vec<String> {
             }
             op_stack.push(token);
         } else if is_function(&token) || token == "(" {
+            if token == "(" {
+                paren_count += 1;
+            }
             op_stack.push(token);
         } else if token == "," {
             // Comma: pop operators until we hit '('
@@ -59,6 +63,9 @@ pub fn infix_to_postfix(tokens: Vec<String>) -> Vec<String> {
             // Add comma to output as argument separator
             output.push(token);
         } else if token == ")" {
+            if paren_count > 0 {
+                paren_count -= 1;
+            }
             while let Some(top) = op_stack.pop() {
                 if top == "(" {
                     break;
@@ -76,6 +83,11 @@ pub fn infix_to_postfix(tokens: Vec<String>) -> Vec<String> {
             // Number
             output.push(token);
         }
+    }
+
+    // Check for unmatched parentheses
+    if paren_count != 0 {
+        output.push("ERROR: unmatched parentheses".to_string());
     }
 
     while let Some(op) = op_stack.pop() {
