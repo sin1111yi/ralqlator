@@ -2,10 +2,10 @@
 
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)]()
 [![Build Status](https://img.shields.io/badge/test-passing-brightgreen)]()
-[![License](https://img.shields.io/badge/license-GPLV3-blue)]()
-[![Rust](https://img.shields.io/badge/rust-2026-orange)]()
+[![License](https://img.shields.io/badge/license-GPLv3-blue)]()
+[![Rust](https://img.shields.io/badge/rust-2021-orange)]()
 
-> **AI 生成项目**: 本项目完全由 **qwen3.5-plus**（阿里巴巴通义千问大语言模型）生成。
+> **AI 生成项目**: 本项目完全由 **Qwen3.5-plus**（阿里巴巴通义千问大语言模型）生成。
 
 一个用 Rust 编写的强大命令行计算器。
 
@@ -13,11 +13,15 @@
 
 - **基本算术**: 加法、减法、乘法、除法、取余、幂运算
 - **位运算**: 与、或、异或、非、左移、右移
-- **数学函数**: 对数、三角函数、平方根、幂函数
+- **数学函数**: 对数、三角函数、平方根、幂函数、阶乘
+- **多参数函数**: `sum(a,b,...)`、`prod(a,b,...)` 用于多参数求和和连乘
+- **数列运算**: `suma(seq, begin, end)` 用于数列求和
+- **用户定义函数**: 使用 `create function name(args) = expression` 创建自定义函数
+- **用户定义数列**: 使用 `create sequence name(n) = formula` 创建数列
 - **多种数字格式**: 十进制、二进制 (0b)、八进制 (0o)、十六进制 (0x)
 - **科学记数法**: 支持 1e3、2.5e-3 等格式
 - **输出格式转换**: 以十六进制、八进制或二进制显示结果
-- **交互式 REPL**: 支持历史导航和上次结果插入
+- **交互式 REPL**: 支持历史导航、Tab 补全和上次结果插入
 - **数学常数**: π (圆周率) 和 e (自然常数)
 
 ## 安装
@@ -74,8 +78,8 @@ ralqlator
 - 使用 `@` 插入上次结果
 - 使用 `hex`、`oct`、`bin` 将上次结果转换为不同格式
 - 按 `Tab` 键进行命令补全（空行时显示帮助）
-- 输入 `q` 或 `quit` 退出
 - 使用 `mode` 命令在标准模式和位运算模式之间切换
+- 输入 `q` 或 `quit` 退出
 
 ```
 > 255
@@ -108,6 +112,8 @@ Switched to Bitwise mode (integer operations)
 | `functions` | 显示数学函数 |
 | `formats` | 显示数字格式 |
 | `constants` | 显示数学常数 |
+| `create function` | 定义自定义函数：`create function f(x,y) = x+y` |
+| `create sequence` | 定义数列：`create sequence a(n) = n*(n+1)/2` |
 | `q` / `quit` | 退出 |
 
 ### 位运算交互模式
@@ -128,6 +134,7 @@ ralqlator -B
 | `/` | 除法 | `10 / 2` | 5 |
 | `%` | 取余 | `10 % 3` | 1 |
 | `^` | 幂运算 | `2 ^ 3` | 8 |
+| `!` | 阶乘（后缀） | `5!` | 120 |
 
 ### 位运算符（使用 `-B` 标志）
 
@@ -141,6 +148,8 @@ ralqlator -B
 | `>>` | 右移 | `8 >> 2` | 2 |
 
 ## 函数
+
+### 内置函数
 
 | 函数 | 说明 | 示例 | 结果 |
 |------|------|------|------|
@@ -157,6 +166,48 @@ ralqlator -B
 | `acos(x)` | 反余弦 | `acos(1)` | 0 |
 | `atan(x)` | 反正切 | `atan(1)` | π/4 |
 | `mod(a, b)` | 取余函数 | `mod(10, 3)` | 1 |
+| `factorial(n)` | 阶乘 (n!) | `factorial(5)` | 120 |
+| `sum(a,b,...)` | 多参数求和 | `sum(1,2,3,4,5)` | 15 |
+| `prod(a,b,...)` | 多参数连乘 | `prod(1,2,3,4,5)` | 120 |
+| `suma(s,b,e)` | 数列求和 | `suma(triangle, 1, 5)` | 35 |
+
+### 用户定义函数
+
+在交互模式中创建自定义函数：
+```
+create function name(args) = expression
+```
+
+示例：
+```
+> create function f(x) = x^2
+> f(5)
+25
+
+> create function add(a,b) = a+b
+> add(3, 7)
+10
+```
+
+### 用户定义数列
+
+创建数列（单变量函数）供 `suma()` 使用：
+```
+create sequence name(n) = formula
+```
+
+示例：
+```
+> create sequence triangle(n) = n*(n+1)/2
+> triangle(10)
+55
+> suma(triangle, 1, 5)
+35
+
+> create sequence square(n) = n^2
+> suma(square, 1, 5)
+55
+```
 
 ## 常数
 
@@ -243,14 +294,17 @@ ralqlator info
 cargo test
 ```
 
-测试套件包含 59 个测试用例，覆盖：
+测试套件包含 **103 个测试用例**，覆盖：
 - 基本算术运算
 - 数字格式解析
 - 数学常数
-- 函数计算
+- 函数计算（内置和用户定义）
 - 三角函数
 - 位运算
-- 错误处理
+- 阶乘、求和、连乘和数列求和函数
+- 数列运算
+- 错误处理和非法输入
+- 边界情况（嵌套括号、大/小数）
 - 词法分析和语法分析
 
 ## 项目结构
@@ -258,10 +312,12 @@ cargo test
 ```
 ralqlator/
 ├── Cargo.toml              # 项目配置
-├── agent_zh.md             # AI 助手中文文档
+├── README.md               # 英文文档
+├── README_zh.md            # 中文文档
+├── agent.md                # 英文 AI 助手文档
 └── src/
     ├── main.rs            # 程序入口
-    ├── lib.rs             # 测试模块
+    ├── lib.rs             # 测试模块（103 个测试）
     ├── cli.rs             # CLI 参数定义
     ├── repl.rs            # 交互式 REPL（支持模式切换）
     ├── calculator.rs      # 计算编排
@@ -293,11 +349,22 @@ ralqlator "log(8, 2)"                      # 输出：3
 
 # 位运算带格式输出
 ralqlator -Bb "8 << 2"                     # 输出：0b100000
+
+# 用户定义函数
+ralqlator
+> create function f(x) = x^2
+> f(5)
+25
+
+# 用户定义数列
+> create sequence triangle(n) = n*(n+1)/2
+> suma(triangle, 1, 5)
+35
 ```
 
 ## 许可证
 
-MIT 许可证 - 详见 LICENSE 文件。
+GNU General Public License v3.0 - 详见 LICENSE 文件。
 
 ## 贡献
 
