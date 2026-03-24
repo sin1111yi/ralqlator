@@ -20,7 +20,13 @@ pub fn is_operator(token: &str) -> bool {
     matches!(
         token,
         "+" | "-" | "*" | "/" | "%" | "^" | "!" | "&" | "|" | "<<" | ">>"
+            | "<" | ">" | "=" | "=="
     )
+}
+
+/// Check if token is a comparison operator
+pub fn is_comparison_operator(token: &str) -> bool {
+    matches!(token, "<" | ">" | "=" | "==")
 }
 
 /// Check if token is a bitwise operator
@@ -50,6 +56,8 @@ pub fn is_function(token: &str) -> bool {
 /// Operator precedence (standard mode)
 pub fn precedence(op: &str) -> u8 {
     match op {
+        "=" | "==" => 0, // Comparison operators (lowest precedence)
+        "<" | ">" => 0,  // Comparison operators (lowest precedence)
         "+" | "-" => 1,
         "*" | "/" | "%" => 2,
         "^" => 3,

@@ -32,6 +32,7 @@ use rustyline::{
 };
 
 use crate::calculator::{calculate_bitwise, calculate_with_functions};
+use crate::evaluator::format_comparison_result;
 use crate::functions::UserFunctions;
 
 /// Available REPL commands
@@ -576,7 +577,12 @@ fn run_repl_with_mode(initial_mode: CalcMode) {
                 match calculate_with_functions(processed, &user_functions) {
                     Ok(result) => {
                         last_result.set(result);
-                        println!("{}", result);
+                        // Check for special comparison results
+                        if let Some(comparison_str) = format_comparison_result(result) {
+                            println!("{}", comparison_str);
+                        } else {
+                            println!("{}", result);
+                        }
                     }
                     Err(e) => {
                         eprintln!("Error: {}", e);

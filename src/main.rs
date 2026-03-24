@@ -62,6 +62,12 @@ fn format_int_base(val: i64, hex: bool, oct: bool, bin: bool) -> String {
 
 /// Format and print result based on output format flags
 fn print_result(result: f64, hex: bool, oct: bool, bin: bool) -> Result<(), String> {
+    // Check for special comparison results first
+    if let Some(comparison_str) = evaluator::format_comparison_result(result) {
+        println!("{}", comparison_str);
+        return Ok(());
+    }
+    
     if hex || oct || bin {
         if result.fract() == 0.0 && result.abs() < 1e15 {
             println!("{}", format_int_base(result as i64, hex, oct, bin));

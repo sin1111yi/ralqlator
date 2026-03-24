@@ -42,9 +42,9 @@ pub fn tokenize(input: &str, bitwise_mode: bool) -> Vec<String> {
                 if handle_bitwise_char(c, &mut chars, &mut tokens, &mut current) {
                     continue;
                 }
-                handle_standard_char(c, &mut tokens, &mut current);
+                handle_standard_char(c, &mut chars, &mut tokens, &mut current);
             }
-            _ => handle_standard_char(c, &mut tokens, &mut current),
+            _ => handle_standard_char(c, &mut chars, &mut tokens, &mut current),
         }
     }
 
@@ -92,6 +92,7 @@ fn handle_bitwise_char(
 /// Handle standard character processing
 fn handle_standard_char(
     c: char,
+    chars: &mut std::iter::Peekable<std::str::Chars>,
     tokens: &mut Vec<String>,
     current: &mut String,
 ) {
@@ -117,6 +118,23 @@ fn handle_standard_char(
             } else {
                 push_current(tokens, current);
                 tokens.push(c.to_string());
+            }
+        }
+        '<' | '>' => {
+            // Comparison operators
+            push_current(tokens, current);
+            tokens.push(c.to_string());
+        }
+        '=' => {
+            // Check for == (double equals)
+            if chars.peek() == Some(&'=') {
+                chars.next();
+                push_current(tokens, current);
+                tokens.push("==".to_string());
+            } else {
+                // Single = for equality check (returns yes/no)
+                push_current(tokens, current);
+                tokens.push("=".to_string());
             }
         }
         '.' => current.push(c),

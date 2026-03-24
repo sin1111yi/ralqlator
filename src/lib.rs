@@ -795,4 +795,66 @@ mod tests {
         assert!(calculator::calculate("pow(2)").is_err());
         assert!(calculator::calculate("pow(2,3,4)").is_err());
     }
+
+    // ==================== Comparison Operator Tests ====================
+
+    #[test]
+    fn test_comparison_greater_than() {
+        assert_eq!(calculator::calculate("5 > 3").unwrap(), 1.0);
+        assert_eq!(calculator::calculate("3 > 5").unwrap(), 0.0);
+        assert_eq!(calculator::calculate("5 > 5").unwrap(), 0.0);
+    }
+
+    #[test]
+    fn test_comparison_less_than() {
+        assert_eq!(calculator::calculate("3 < 5").unwrap(), 1.0);
+        assert_eq!(calculator::calculate("5 < 3").unwrap(), 0.0);
+        assert_eq!(calculator::calculate("5 < 5").unwrap(), 0.0);
+    }
+
+    #[test]
+    fn test_comparison_single_equals() {
+        // Single = returns special yes/no values
+        let result = calculator::calculate("5 = 5").unwrap();
+        assert!(evaluator::format_comparison_result(result) == Some("yes".to_string()));
+        
+        let result = calculator::calculate("5 = 3").unwrap();
+        assert!(evaluator::format_comparison_result(result) == Some("no".to_string()));
+    }
+
+    #[test]
+    fn test_comparison_double_equals() {
+        // Double == returns special true/false values
+        let result = calculator::calculate("5 == 5").unwrap();
+        assert!(evaluator::format_comparison_result(result) == Some("true".to_string()));
+        
+        let result = calculator::calculate("5 == 3").unwrap();
+        assert!(evaluator::format_comparison_result(result) == Some("false".to_string()));
+    }
+
+    #[test]
+    fn test_comparison_with_floats() {
+        assert_eq!(calculator::calculate("3.14 < 3.15").unwrap(), 1.0);
+        assert_eq!(calculator::calculate("3.14 > 3.15").unwrap(), 0.0);
+    }
+
+    #[test]
+    fn test_comparison_with_expressions() {
+        assert_eq!(calculator::calculate("2 + 3 > 4").unwrap(), 1.0);
+        assert_eq!(calculator::calculate("2 * 3 < 5").unwrap(), 0.0);
+        // Single = returns special yes/no value
+        let result = calculator::calculate("10 / 2 = 5").unwrap();
+        assert!(evaluator::format_comparison_result(result) == Some("yes".to_string()));
+    }
+
+    #[test]
+    fn test_comparison_precedence() {
+        // Comparison should have lowest precedence
+        // 2 + 3 > 4 + 1 means (2+3) > (4+1) means 5 > 5 which is false
+        assert_eq!(calculator::calculate("2 + 3 > 4 + 1").unwrap(), 0.0);
+        assert_eq!(calculator::calculate("2 + 3 > 3 + 1").unwrap(), 1.0);
+        // Single = returns special yes/no value
+        let result = calculator::calculate("10 - 5 = 5").unwrap();
+        assert!(evaluator::format_comparison_result(result) == Some("yes".to_string()));
+    }
 }

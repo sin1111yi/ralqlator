@@ -19,7 +19,29 @@ use crate::functions::{
     eval_acos, eval_asin, eval_atan, eval_cos, eval_factorial, eval_lg, eval_ln, eval_log_base,
     eval_mod, eval_product, eval_pow, eval_sin, eval_sqrt, eval_sum, eval_tan,
 };
-use crate::operator::{is_function, is_operator, is_postfix_unary_operator};
+use crate::operator::{is_comparison_operator, is_function, is_operator, is_postfix_unary_operator};
+
+/// Special result values for comparison operators
+/// These are special NaN values that can be detected and formatted specially
+pub const COMPARISON_YES_RESULT: f64 = -1e308;
+pub const COMPARISON_NO_RESULT: f64 = -1e307;
+pub const COMPARISON_TRUE_RESULT: f64 = -1e306;
+pub const COMPARISON_FALSE_RESULT: f64 = -1e305;
+
+/// Check if a result is a special comparison result and return the string representation
+pub fn format_comparison_result(result: f64) -> Option<String> {
+    if result == COMPARISON_YES_RESULT {
+        Some("yes".to_string())
+    } else if result == COMPARISON_NO_RESULT {
+        Some("no".to_string())
+    } else if result == COMPARISON_TRUE_RESULT {
+        Some("true".to_string())
+    } else if result == COMPARISON_FALSE_RESULT {
+        Some("false".to_string())
+    } else {
+        None
+    }
+}
 
 /// Evaluate postfix expression
 pub fn eval_postfix(postfix: Vec<String>) -> Result<f64, String> {
@@ -43,6 +65,28 @@ pub fn eval_postfix(postfix: Vec<String>) -> Result<f64, String> {
                 _ => return Err(format!("Unknown postfix operator: {}", token)),
             };
             stack.push(result);
+        } else if is_comparison_operator(&token) {
+            // Comparison operators: < > = ==
+            // Single = returns "yes"/"no", double == returns "true"/"false"
+            let b = stack.pop().ok_or("Stack is empty, invalid expression")?;
+            let a = stack.pop().ok_or("Stack is empty, invalid expression")?;
+            let is_true = match token.as_str() {
+                "<" => a < b,
+                ">" => a > b,
+                "=" => (a - b).abs() < 1e-10,
+                "==" => (a - b).abs() < 1e-10,
+                _ => return Err(format!("Unknown comparison operator: {}", token)),
+            };
+            
+            // Return special value based on operator type and result
+            return Ok(match (token.as_str(), is_true) {
+                ("=", true) => COMPARISON_YES_RESULT,
+                ("=", false) => COMPARISON_NO_RESULT,
+                ("==", true) => COMPARISON_TRUE_RESULT,
+                ("==", false) => COMPARISON_FALSE_RESULT,
+                (_, true) => 1.0,
+                (_, false) => 0.0,
+            });
         } else if is_operator(&token) {
             let b = stack.pop().ok_or("Stack is empty, invalid expression")?;
             let a = stack.pop().ok_or("Stack is empty, invalid expression")?;
