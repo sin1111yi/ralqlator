@@ -145,6 +145,16 @@ ralqlator/
 | `^` | Exponentiation | 3 |
 | `!` | Factorial (postfix) | 4 |
 
+### Comparison Operators
+| Operator | Description | Precedence | Output |
+|----------|-------------|------------|--------|
+| `<` | Less than | 0 | `true`/`false` |
+| `>` | Greater than | 0 | `true`/`false` |
+| `=` | Equality check | 0 | `yes`/`no` |
+| `==` | Logical equality | 0 | `true`/`false` |
+
+**Note:** Comparison operators have the lowest precedence and return human-readable results.
+
 ### Bitwise Operators (-B mode)
 | Operator | Description | Precedence |
 |----------|-------------|------------|
@@ -197,6 +207,11 @@ cargo run -- "1 + 2 * 3"           # Output: 7
 # Using functions
 cargo run -- "lg(100)"             # Output: 2
 cargo run -- "sin(pi / 2)"         # Output: 1
+
+# Comparison operators
+cargo run -- "5 > 3"               # Output: true
+cargo run -- "5 = 5"               # Output: yes
+cargo run -- "5 == 5"              # Output: true
 
 # Bitwise operations
 cargo run -- -B "12 & 10"          # Output: 8
@@ -280,7 +295,7 @@ Run all tests:
 cargo test
 ```
 
-Test coverage (**103 test cases**):
+Test coverage (**110 test cases**):
 - Basic arithmetic operations (9 tests)
 - Number formats (6 tests)
 - Constants (3 tests)
@@ -291,6 +306,7 @@ Test coverage (**103 test cases**):
 - Sum/product functions (9 tests)
 - Sequence sum (7 tests)
 - User-defined functions (3 tests)
+- **Comparison operators (7 tests)**
 - Error handling (7 tests)
 - Lexical analysis (6 tests)
 - Parsing (3 tests)
@@ -299,7 +315,7 @@ Test coverage (**103 test cases**):
 - Invalid input (8 tests)
 - Integration tests (5 tests)
 
-**Total: 103 test cases**
+**Total: 110 test cases**
 
 ## Dependencies
 
@@ -343,6 +359,15 @@ A:
 2. Add the function name to `is_function()` in `operator.rs`
 3. Add handling logic in `eval_postfix()` in `evaluator.rs`
 4. Add documentation in `repl.rs` help information
+
+**Q: What's the difference between `=` and `==`?**
+A: 
+- `=` is an equality check that returns `yes` or `no`
+- `==` is a logical equality that returns `true` or `false`
+- Both compare if two values are equal, but with different output styles
+
+**Q: Why do `<` and `>` return `true`/`false` but `=` returns `yes`/`no`?**
+A: This design distinguishes relational operators (`<`, `>`, `==`) that return boolean values from the equality check operator (`=`) that returns yes/no for simple equality verification.
 
 ## Author
 
