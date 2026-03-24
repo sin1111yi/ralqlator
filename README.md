@@ -71,19 +71,44 @@ ralqlator
 
 In interactive mode:
 - Type expressions and press Enter to calculate
-- Use `@` or `Alt+G` to insert the last result
+- Use `@` to insert the last result
 - Use `hex`, `oct`, `bin` to convert the last result to different formats
+- Press `Tab` for command completion (shows help on empty line)
+- Use `mode` command to switch between standard and bitwise modes
 - Type `q` or `quit` to exit
 
 ```
 > 255
-= 255
+255
 > hex
-= 0xFF
+0xFF
 > @ + 1
-= 256
+256
+> mode
+Switched to Bitwise mode (integer operations)
+> 12 & 10
+8
 > quit
 ```
+
+### Interactive Mode Commands
+
+| Command | Description |
+|---------|-------------|
+| `Tab` | Command completion (shows help on empty line) |
+| `@` | Insert last result |
+| `hex` / `oct` / `bin` | Show last result in different formats |
+| `mode` | Toggle between standard and bitwise modes |
+| `mode standard` | Switch to standard mode |
+| `mode bitwise` | Switch to bitwise mode |
+| `help` | Show all help information |
+| `help standard` | Show standard mode help |
+| `help bitwise` | Show bitwise mode help |
+| `operators` | Show operators for current mode |
+| `functions` | Show mathematical functions |
+| `formats` | Show number formats |
+| `constants` | Show mathematical constants |
+| `q` / `quit` | Exit |
 
 ### Bitwise Interactive Mode
 

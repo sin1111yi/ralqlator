@@ -71,19 +71,44 @@ ralqlator
 
 交互模式下：
 - 输入表达式并按 Enter 计算
-- 使用 `@` 或 `Alt+G` 插入上次结果
+- 使用 `@` 插入上次结果
 - 使用 `hex`、`oct`、`bin` 将上次结果转换为不同格式
+- 按 `Tab` 键进行命令补全（空行时显示帮助）
 - 输入 `q` 或 `quit` 退出
+- 使用 `mode` 命令在标准模式和位运算模式之间切换
 
 ```
 > 255
-= 255
+255
 > hex
-= 0xFF
+0xFF
 > @ + 1
-= 256
+256
+> mode
+Switched to Bitwise mode (integer operations)
+> 12 & 10
+8
 > quit
 ```
+
+### 交互模式命令
+
+| 命令 | 说明 |
+|------|------|
+| `Tab` | 命令补全（空行时显示帮助） |
+| `@` | 插入上次计算结果 |
+| `hex` / `oct` / `bin` | 将上次结果转换为对应格式 |
+| `mode` | 切换计算模式（标准↔位运算） |
+| `mode standard` | 切换到标准模式 |
+| `mode bitwise` | 切换到位运算模式 |
+| `help` | 显示完整帮助信息 |
+| `help standard` | 显示标准模式帮助 |
+| `help bitwise` | 显示位运算模式帮助 |
+| `operators` | 显示当前模式运算符 |
+| `functions` | 显示数学函数 |
+| `formats` | 显示数字格式 |
+| `constants` | 显示数学常数 |
+| `q` / `quit` | 退出 |
 
 ### 位运算交互模式
 

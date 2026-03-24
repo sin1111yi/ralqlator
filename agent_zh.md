@@ -92,11 +92,25 @@ raculator/
 - **职责**: 交互式计算器
 - **功能**:
   - 历史输入（上下键浏览）
-  - Alt+G / @ 插入上次结果
+  - @ 插入上次结果
   - hex/oct/bin 命令转换格式
+  - Tab 键命令补全（空行时显示帮助）
+  - `mode` 命令切换标准模式和位运算模式
+  - 模式相关帮助显示
 - **结构**:
   - `run_repl()`: 标准模式
   - `run_repl_bitwise()`: 位运算模式
+  - `run_repl_with_mode()`: 统一的 REPL 支持模式切换
+- **关键命令**:
+  - `Tab`: 命令补全（空行时显示帮助）
+  - `@`: 插入上次结果
+  - `mode`: 切换标准模式和位运算模式
+  - `mode standard/std/s`: 切换到标准模式
+  - `mode bitwise/bit/b`: 切换到位运算模式
+  - `help [mode]`: 显示帮助（可选指定模式）
+  - `operators [mode]`: 显示当前/指定模式的运算符
+  - `functions [mode]`: 显示函数帮助
+  - `q/quit`: 退出
 
 ### operator.rs
 - **职责**: 操作符和函数识别
@@ -194,16 +208,41 @@ cargo run
 ```
 
 交互模式命令：
+- `Tab`: 命令补全（空行时显示帮助）
 - `q` / `quit`: 退出
 - `@`: 插入上次结果
-- `Alt+G`: 插入上次结果
 - `hex`: 显示上次结果的十六进制
 - `oct`: 显示上次结果的八进制
 - `bin`: 显示上次结果的二进制
+- `mode`: 切换标准模式和位运算模式
+- `mode standard`: 切换到标准模式
+- `mode bitwise`: 切换到位运算模式
+- `help`: 显示完整帮助信息
+- `help standard`: 显示标准模式帮助
+- `help bitwise`: 显示位运算模式帮助
+- `operators`: 显示当前模式运算符
+- `functions`: 显示数学函数
+- `formats`: 显示数字格式
+- `constants`: 显示数学常数
 
 位运算交互模式：
 ```bash
 cargo run -- -B
+```
+
+示例会话：
+```
+> 255
+255
+> hex
+0xFF
+> @ + 1
+256
+> mode
+Switched to Bitwise mode (integer operations)
+> 12 & 10
+8
+> quit
 ```
 
 ## 数据流
