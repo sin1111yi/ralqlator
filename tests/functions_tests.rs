@@ -1005,3 +1005,179 @@ fn test_atan2_error_args() {
     assert!(!success);
     assert!(stderr.contains("Error"));
 }
+
+// ==================== BigInt Functions Tests ====================
+
+#[test]
+fn test_bfactorial_small() {
+    let (stdout, _, success) = run_cli(&["bfactorial(10)"]);
+    assert!(success);
+    assert!(stdout.contains("3628800"));
+}
+
+#[test]
+fn test_bfactorial_large() {
+    let (stdout, _, success) = run_cli(&["bfactorial(50)"]);
+    assert!(success);
+    // 50! = 30414093201713378043612608166064768844377641568960512000000000000
+    assert!(stdout.contains("3041409320171337"));
+}
+
+#[test]
+fn test_bfactorial_error_negative() {
+    let (_, stderr, success) = run_cli(&["bfactorial(-1)"]);
+    assert!(!success);
+    assert!(stderr.contains("Error"));
+}
+
+#[test]
+fn test_bfactorial_error_too_large() {
+    let (_, stderr, success) = run_cli(&["bfactorial(10001)"]);
+    assert!(!success);
+    assert!(stderr.contains("Error"));
+}
+
+#[test]
+fn test_bpow_basic() {
+    let (stdout, _, success) = run_cli(&["bpow(2, 10)"]);
+    assert!(success);
+    assert!(stdout.contains("1024"));
+}
+
+#[test]
+fn test_bpow_large() {
+    let (stdout, _, success) = run_cli(&["bpow(2, 100)"]);
+    assert!(success);
+    // 2^100 = 1267650600228229401496703205376
+    assert!(stdout.contains("1267650600228229"));
+}
+
+#[test]
+fn test_bpow_error_negative_exp() {
+    let (_, stderr, success) = run_cli(&["bpow(2, -1)"]);
+    assert!(!success);
+    assert!(stderr.contains("Error"));
+}
+
+#[test]
+fn test_comb_basic() {
+    let (stdout, _, success) = run_cli(&["comb(52, 5)"]);
+    assert!(success);
+    // C(52,5) = 2598960 (poker hands)
+    assert!(stdout.contains("2598960"));
+}
+
+#[test]
+fn test_comb_symmetric() {
+    // C(n,k) = C(n, n-k)
+    let (stdout1, _, success1) = run_cli(&["comb(10, 3)"]);
+    let (stdout2, _, success2) = run_cli(&["comb(10, 7)"]);
+    assert!(success1 && success2);
+    assert_eq!(stdout1.trim(), stdout2.trim());
+}
+
+#[test]
+fn test_comb_error() {
+    let (_, stderr, success) = run_cli(&["comb(5, 10)"]);
+    assert!(!success);
+    assert!(stderr.contains("Error"));
+}
+
+#[test]
+fn test_perm_basic() {
+    let (stdout, _, success) = run_cli(&["perm(10, 3)"]);
+    assert!(success);
+    // P(10,3) = 10 * 9 * 8 = 720
+    assert!(stdout.contains("720"));
+}
+
+#[test]
+fn test_perm_error() {
+    let (_, stderr, success) = run_cli(&["perm(5, 10)"]);
+    assert!(!success);
+    assert!(stderr.contains("Error"));
+}
+
+#[test]
+fn test_gcd_basic() {
+    let (stdout, _, success) = run_cli(&["gcd(48, 18)"]);
+    assert!(success);
+    assert!(stdout.contains("6"));
+}
+
+#[test]
+fn test_gcd_coprime() {
+    let (stdout, _, success) = run_cli(&["gcd(17, 19)"]);
+    assert!(success);
+    assert!(stdout.contains("1"));
+}
+
+#[test]
+fn test_gcd_negative() {
+    let (stdout, _, success) = run_cli(&["gcd(-48, 18)"]);
+    assert!(success);
+    assert!(stdout.contains("6"));
+}
+
+#[test]
+fn test_lcm_basic() {
+    let (stdout, _, success) = run_cli(&["lcm(12, 18)"]);
+    assert!(success);
+    assert!(stdout.contains("36"));
+}
+
+#[test]
+fn test_lcm_coprime() {
+    let (stdout, _, success) = run_cli(&["lcm(7, 11)"]);
+    assert!(success);
+    assert!(stdout.contains("77"));
+}
+
+#[test]
+fn test_isprime_true() {
+    let (stdout, _, success) = run_cli(&["isprime(17)"]);
+    assert!(success);
+    assert!(stdout.contains("1"));
+}
+
+#[test]
+fn test_isprime_false() {
+    let (stdout, _, success) = run_cli(&["isprime(15)"]);
+    assert!(success);
+    assert!(stdout.contains("0"));
+}
+
+#[test]
+fn test_isprime_small() {
+    let (stdout, _, success) = run_cli(&["isprime(2)"]);
+    assert!(success);
+    assert!(stdout.contains("1"));
+}
+
+#[test]
+fn test_isprime_one() {
+    let (stdout, _, success) = run_cli(&["isprime(1)"]);
+    assert!(success);
+    assert!(stdout.contains("0"));
+}
+
+#[test]
+fn test_nextprime_basic() {
+    let (stdout, _, success) = run_cli(&["nextprime(10)"]);
+    assert!(success);
+    assert!(stdout.contains("11"));
+}
+
+#[test]
+fn test_nextprime_larger() {
+    let (stdout, _, success) = run_cli(&["nextprime(100)"]);
+    assert!(success);
+    assert!(stdout.contains("101"));
+}
+
+#[test]
+fn test_nextprime_from_prime() {
+    let (stdout, _, success) = run_cli(&["nextprime(17)"]);
+    assert!(success);
+    assert!(stdout.contains("19"));
+}

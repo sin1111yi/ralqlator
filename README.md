@@ -20,12 +20,13 @@ A powerful command-line calculator written in Rust.
 - **User-defined Sequences**: Create sequences with `create seq name(n) = formula`
 - **User-defined Constants**: Create constants with `create const NAME value`
 - **Multiple Number Formats**: Decimal, binary (0b), octal (0o), hexadecimal (0x)
-- **Scientific Notation**: Support for 1e3, 2.5e-3, etc.
+- **Scientific Notation**: Support for 1e3, 2.5e-3, etc. Auto-displays for very small numbers
 - **Output Format Conversion**: Display results in hex, octal, or binary
 - **Interactive REPL**: With history navigation, Tab completion, and last result insertion
 - **Mathematical Constants**: Built-in `C_PI` and `C_E`, plus user-defined constants
 - **Comparison Operators**: `<`, `>`, `=`, `==` with boolean/yes-no results
 - **Comprehensive Help System**: `help [topic]` for detailed documentation
+- **BigInt Functions**: Arbitrary precision arithmetic with `bfactorial`, `bpow`, `comb`, `perm`, `gcd`, `lcm`, `isprime`, `nextprime`
 
 ## Installation
 
@@ -206,24 +207,81 @@ ralqlator -B
 
 ### Built-in Functions
 
+#### Logarithms
 | Function | Description | Example | Result |
 |----------|-------------|---------|--------|
 | `lg(x)` | Base-10 logarithm | `lg(100)` | 2 |
 | `lg(x, base)` | Custom base logarithm | `lg(8, 2)` | 3 |
 | `log(x, base)` | Custom base logarithm | `log(27, 3)` | 3 |
 | `ln(x)` | Natural logarithm | `ln(C_E)` | 1 |
+| `log2(x)` | Base-2 logarithm | `log2(256)` | 8 |
+
+#### Roots & Powers
+| Function | Description | Example | Result |
+|----------|-------------|---------|--------|
 | `sqrt(x)` | Square root | `sqrt(16)` | 4 |
+| `cbrt(x)` | Cube root | `cbrt(27)` | 3 |
 | `pow(x, y)` | Power function | `pow(2, 10)` | 1024 |
+
+#### Trigonometric Functions
+| Function | Description | Example | Result |
+|----------|-------------|---------|--------|
 | `sin(x)` | Sine (radians) | `sin(0)` | 0 |
 | `cos(x)` | Cosine (radians) | `cos(0)` | 1 |
 | `tan(x)` | Tangent (radians) | `tan(0)` | 0 |
+| `sec(x)` | Secant | `sec(0)` | 1 |
+| `csc(x)` | Cosecant | `csc(C_PI/2)` | 1 |
+| `cot(x)` | Cotangent | `cot(C_PI/4)` | 1 |
 | `asin(x)` | Inverse sine | `asin(1)` | π/2 |
 | `acos(x)` | Inverse cosine | `acos(1)` | 0 |
 | `atan(x)` | Inverse tangent | `atan(1)` | π/4 |
-| `mod(a, b)` | Modulo function | `mod(10, 3)` | 1 |
+| `atan2(y, x)` | Two-argument arctangent | `atan2(1, 1)` | π/4 |
+
+#### Hyperbolic Functions
+| Function | Description | Example | Result |
+|----------|-------------|---------|--------|
+| `sinh(x)` | Hyperbolic sine | `sinh(0)` | 0 |
+| `cosh(x)` | Hyperbolic cosine | `cosh(0)` | 1 |
+| `tanh(x)` | Hyperbolic tangent | `tanh(0)` | 0 |
+| `asinh(x)` | Inverse hyperbolic sine | `asinh(1)` | 0.881 |
+| `acosh(x)` | Inverse hyperbolic cosine | `acosh(2)` | 1.316 |
+| `atanh(x)` | Inverse hyperbolic tangent | `atanh(0.5)` | 0.549 |
+
+#### Special Functions
+| Function | Description | Example | Result |
+|----------|-------------|---------|--------|
 | `factorial(n)` | Factorial (n!) | `factorial(5)` | 120 |
+| `gamma(n)` | Gamma function | `gamma(5)` | 24 |
+| `erf(x)` | Error function | `erf(1)` | 0.8427 |
+| `erfc(x)` | Complementary error | `erfc(1)` | 0.157 |
+| `beta(x, y)` | Beta function | `beta(2, 3)` | 0.0833 |
+
+#### BigInt Functions (Arbitrary Precision)
+| Function | Description | Example | Result |
+|----------|-------------|---------|--------|
+| `bfactorial(n)` | Big factorial (max 10000!) | `bfactorial(50)` | 30414093... (65 digits) |
+| `bpow(base, exp)` | Big power (max exp 1000) | `bpow(2, 100)` | 1267650600... (31 digits) |
+| `comb(n, k)` | Combinations C(n,k) | `comb(52, 5)` | 2598960 |
+| `perm(n, k)` | Permutations P(n,k) | `perm(10, 3)` | 720 |
+| `gcd(a, b)` | Greatest common divisor | `gcd(48, 18)` | 6 |
+| `lcm(a, b)` | Least common multiple | `lcm(12, 18)` | 36 |
+| `isprime(n)` | Prime check (1=true, 0=false) | `isprime(17)` | 1 |
+| `nextprime(n)` | Next prime after n | `nextprime(100)` | 101 |
+
+#### Utility Functions
+| Function | Description | Example | Result |
+|----------|-------------|---------|--------|
+| `mod(a, b)` | Modulo function | `mod(10, 3)` | 1 |
 | `sum(a,b,...)` | Sum of arguments | `sum(1,2,3,4,5)` | 15 |
 | `prod(a,b,...)` | Product of arguments | `prod(1,2,3,4,5)` | 120 |
+| `abs(x)` | Absolute value | `abs(-5)` | 5 |
+| `floor(x)` | Floor function | `floor(3.7)` | 3 |
+| `ceil(x)` | Ceiling function | `ceil(3.2)` | 4 |
+| `round(x)` | Round to nearest | `round(3.5)` | 4 |
+
+#### Sequence Functions
+| Function | Description | Example | Result |
+|----------|-------------|---------|--------|
 | `suma(s,b,e)` | Sum of sequence terms | `suma(triangle, 1, 5)` | 35 |
 
 ### User-defined Functions
@@ -387,7 +445,7 @@ Run all tests:
 cargo test
 ```
 
-The test suite includes **425+ test cases** organized in 12 test files:
+The test suite includes **530+ test cases** organized in 12 test files:
 
 ### Test Organization
 
@@ -398,7 +456,7 @@ The test suite includes **425+ test cases** organized in 12 test files:
 - **constants_tests.rs** (12 tests): Mathematical constants
 - **edge_cases_tests.rs** (50 tests): Boundary conditions
 - **error_handling_tests.rs** (41 tests): Error conditions
-- **functions_tests.rs** (66 tests): Mathematical functions
+- **functions_tests.rs** (156 tests): Mathematical functions (including 25 BigInt tests)
 - **interactive_tests.rs** (59 tests): REPL interactive mode
 - **internal_tests.rs** (12 tests): Internal module tests
 - **number_formats_tests.rs** (34 tests): Number format I/O
@@ -410,7 +468,10 @@ The test suite includes **425+ test cases** organized in 12 test files:
 - Number format parsing (binary, octal, hexadecimal)
 - Mathematical constants (C_PI, C_E)
 - Function calculations (built-in and user-defined)
-- Trigonometric functions
+- Trigonometric and hyperbolic functions
+- Reciprocal trigonometric functions (sec, csc, cot)
+- Special functions (gamma, erf, erfc, beta)
+- BigInt functions (bfactorial, bpow, comb, perm, gcd, lcm, isprime, nextprime)
 - Bitwise operations
 - Factorial, sum, prod, and suma functions
 - Sequence operations
