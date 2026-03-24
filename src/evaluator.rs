@@ -67,7 +67,9 @@ pub fn eval_postfix(postfix: Vec<String>) -> Result<f64, String> {
             stack.push(result);
         } else if is_comparison_operator(&token) {
             // Comparison operators: < > = ==
-            // Single = returns "yes"/"no", double == returns "true"/"false"
+            // < and > return "true"/"false"
+            // = returns "yes"/"no"
+            // == returns "true"/"false"
             let b = stack.pop().ok_or("Stack is empty, invalid expression")?;
             let a = stack.pop().ok_or("Stack is empty, invalid expression")?;
             let is_true = match token.as_str() {
@@ -82,10 +84,13 @@ pub fn eval_postfix(postfix: Vec<String>) -> Result<f64, String> {
             return Ok(match (token.as_str(), is_true) {
                 ("=", true) => COMPARISON_YES_RESULT,
                 ("=", false) => COMPARISON_NO_RESULT,
+                ("<", true) => COMPARISON_TRUE_RESULT,
+                ("<", false) => COMPARISON_FALSE_RESULT,
+                (">", true) => COMPARISON_TRUE_RESULT,
+                (">", false) => COMPARISON_FALSE_RESULT,
                 ("==", true) => COMPARISON_TRUE_RESULT,
                 ("==", false) => COMPARISON_FALSE_RESULT,
-                (_, true) => 1.0,
-                (_, false) => 0.0,
+                _ => return Err(format!("Unknown comparison operator: {}", token)),
             });
         } else if is_operator(&token) {
             let b = stack.pop().ok_or("Stack is empty, invalid expression")?;
