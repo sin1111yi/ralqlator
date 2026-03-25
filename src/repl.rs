@@ -734,6 +734,14 @@ fn run_repl_with_mode(initial_mode: CalcMode) {
                 };
 
                 if subcmd == "func" || subcmd == "function" || subcmd == "fn" || subcmd == "f" {
+                    // Check if in bitwise mode - functions are not supported
+                    if matches!(mode, CalcMode::Bitwise) {
+                        eprintln!("Error: User-defined functions are not supported in bitwise mode.");
+                        eprintln!("Bitwise mode only supports: & (AND), | (OR), ^ (XOR), ~ (NOT), <<, >>");
+                        eprintln!("Switch to standard mode first: mode standard\n");
+                        continue;
+                    }
+                    
                     // Parse: create func name(args) = expression
                     if let Some(eq_pos) = rest.find('=') {
                         let name_part = rest[..eq_pos].trim();
@@ -766,6 +774,14 @@ fn run_repl_with_mode(initial_mode: CalcMode) {
                     eprintln!("Usage: create func name(args) = expression\n");
                     continue;
                 } else if subcmd == "seq" || subcmd == "sequence" || subcmd == "s" {
+                    // Check if in bitwise mode - sequences are not supported
+                    if matches!(mode, CalcMode::Bitwise) {
+                        eprintln!("Error: User-defined sequences are not supported in bitwise mode.");
+                        eprintln!("Bitwise mode only supports: & (AND), | (OR), ^ (XOR), ~ (NOT), <<, >>");
+                        eprintln!("Switch to standard mode first: mode standard\n");
+                        continue;
+                    }
+                    
                     // Parse: create seq name(n) = expression
                     if let Some(eq_pos) = rest.find('=') {
                         let name_part = rest[..eq_pos].trim();
