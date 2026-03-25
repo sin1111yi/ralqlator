@@ -1,7 +1,8 @@
 [package]
 name = "ralqlator"
-version = "0.1.0"
+version = "0.3.1"
 edition = "2021"
+build = "build.rs"
 
 [dependencies]
 # CLI and REPL
@@ -12,4 +13,12 @@ rustyline = "14.0"
 num = "0.4"                    # General number traits and utilities
 num-traits = "0.2"             # Numeric traits
 num-bigint = "0.4"             # BigInt and BigUint for arbitrary precision integers
+num-rational = "0.4"           # Rational number support
 statrs = "0.17"                # Statistical functions and special functions
+
+[dev-dependencies]
+criterion = "0.5"              # Benchmarking framework
+
+[[bench]]
+name = "calculator_bench"
+harness = false

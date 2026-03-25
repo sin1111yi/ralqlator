@@ -195,7 +195,6 @@ fn process_bitwise_token(token: String, sy: &mut ShuntingYard) {
              use two's complement manually"
                 .to_string(),
         );
-        return;
     } else if is_bitwise_operator(&token) {
         // For bitwise operators, pop higher precedence operators
         // But NEG is a prefix unary operator, so it should stay on stack until we see an operand

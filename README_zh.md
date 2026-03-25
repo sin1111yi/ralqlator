@@ -4,28 +4,58 @@
 [![Build Status](https://img.shields.io/badge/test-passing-brightgreen)]()
 [![License](https://img.shields.io/badge/license-GPLv3-blue)]()
 [![Rust](https://img.shields.io/badge/rust-2021-orange)]()
+[![Version](https://img.shields.io/badge/version-v0.3.1-blue)]()
 
 > **AI 生成项目**: 本项目完全由 **qwen3.5-plus**（阿里巴巴通义千问大语言模型）在 **qwen-coder**（阿里巴巴 AI agent）下生成。
 
-一个用 Rust 编写的强大命令行计算器。
+一个用 Rust 编写的强大命令行计算器，支持精确有理数运算、丰富的数学函数库和交互式 REPL。
 
 ## 功能特性
 
+### 核心算术
 - **基本算术**: 加法、减法、乘法、除法、取余、幂运算
-- **位运算**: 与、或、异或、非、左移、右移
-- **数学函数**: 对数、三角函数、平方根、幂函数、阶乘
-- **多参数函数**: `sum(a,b,...)`, `prod(a,b,...)` 用于多参数求和和连乘
-- **数列运算**: `suma(seq, begin, end)` 用于数列求和
-- **用户定义函数**: 使用 `create func name(args) = expression` 创建自定义函数
-- **用户定义数列**: 使用 `create seq name(n) = formula` 创建数列
-- **用户定义常量**: 使用 `create const NAME value` 创建常量
-- **多种数字格式**: 十进制、二进制 (0b)、八进制 (0o)、十六进制 (0x)
-- **科学记数法**: 支持 1e3、2.5e-3 等格式，自动显示两种格式
-- **输出格式转换**: 以十六进制、八进制或二进制显示结果
-- **交互式 REPL**: 支持历史导航、Tab 补全和上次结果插入
-- **数学常数**: 内置 `C_PI` 和 `C_E`，支持用户定义常量
-- **比较运算符**: `<`, `>`, `=`, `==` 返回布尔值/yes-no 结果
-- **完善的帮助系统**: `help [topic]` 获取详细文档
+- **精确有理数运算**: 精确分数计算（如 `1/3 + 1/3 + 1/3 = 1`）
+- **位运算**: 与、或、异或、非、左移、右移（使用 `-B` 标志）
+
+### 数学函数
+- **对数函数**: `lg(x)`, `lg(x, base)`, `log(x, base)`, `ln(x)`, `log2(x)`
+- **根式与幂**: `sqrt(x)`, `cbrt(x)`, `pow(x, y)`
+- **三角函数**: `sin`, `cos`, `tan`, `sec`, `csc`, `cot` 及其反函数
+- **双曲函数**: `sinh`, `cosh`, `tanh` 及其反函数
+- **特殊函数**: `factorial`, `gamma`, `erf`, `erfc`, `beta`
+- **BigInt 函数**: `bfactorial`, `bpow`, `comb`, `perm`, `gcd`, `lcm`, `isprime`, `nextprime`
+
+### 有理数函数（v0.3.0 新增）
+- **`num(x)`**: 获取分子
+- **`den(x)`**: 获取分母
+- **`frac(x)`**: 获取小数部分
+- **`rational(n, d)`**: 从分子/分母创建有理数
+- **`float(x)`**: 转换为浮点数
+- **分数输入**: 直接输入 `1/3`, `22/7` 等分数
+
+### 用户定义元素
+- **函数**: `create func name(args) = expression`
+- **数列**: `create seq name(n) = formula`
+- **常量**: `create const NAME value`
+
+### 数字格式
+- **输入**: 十进制、二进制 (`0b`)、八进制 (`0o`)、十六进制 (`0x`)、科学记数法
+- **输出**: 十六进制 (`-x`)、八进制 (`-o`)、二进制 (`-b`)
+
+### 交互式 REPL
+- 箭头键历史导航
+- Tab 命令补全
+- 上次结果插入 (`@`)
+- 模式切换 (`mode` 命令)
+- 完善的帮助系统 (`help [topic]`)
+
+### 比较运算符
+- `<`, `>`, `=`, `==` 统一返回 `true` 或 `false`
+
+### 帮助系统
+- CLI: `ralqlator --help`, `ralqlator functions`, `ralqlator operators` 等
+- REPL: `help`, `help functions`, `help operators`, `help create` 等
+- 版本信息：`ralqlator -v` 或 `ralqlator --version`
 
 ## 安装
 
@@ -169,7 +199,7 @@ Constant 'G' = 9.81
 
 **注意：**
 - `<` 和 `>` 返回 `true` 或 `false`（关系比较）
-- `=` 返回 `yes` 或 `no`（相等判断）
+- `=` 返回 `true` 或 `no`（相等判断）
 - `==` 返回 `true` 或 `false`（逻辑相等）
 
 ### 位运算符（使用 `-B` 标志）
@@ -368,122 +398,172 @@ ralqlator info
 cargo test
 ```
 
-测试套件包含 **425+ 个测试用例**，分为 12 个测试文件：
+测试套件包含 **427+ 个测试用例**，分为 9 个测试文件：
 
 ### 测试组织
 
-- **arithmetic_tests.rs** (45 个测试): 基本算术运算
-- **bitwise_tests.rs** (38 个测试): 位运算
-- **cli_tests.rs** (37 个测试): CLI 参数和选项
-- **comparison_tests.rs** (22 个测试): 比较运算符
-- **constants_tests.rs** (12 个测试): 数学常数
-- **edge_cases_tests.rs** (50 个测试): 边界条件
-- **error_handling_tests.rs** (41 个测试): 错误处理
-- **functions_tests.rs** (66 个测试): 数学函数
-- **interactive_tests.rs** (59 个测试): REPL 交互模式
-- **internal_tests.rs** (12 个测试): 内部模块测试
-- **number_formats_tests.rs** (34 个测试): 数字格式输入输出
-- **user_defined_tests.rs** (23 个测试): 用户定义函数/常量
+- **01_core_tests.rs** (75 个测试): 核心算术、位运算、比较运算、紧凑格式测试
+- **02_functions_tests.rs** (35 个测试): 数学函数
+- **03_cli_formats_tests.rs** (39 个测试): CLI 参数、数字格式、科学记数法
+- **04_repl_tests.rs** (55 个测试): REPL 交互模式
+- **05_rational_tests.rs** (49 个测试): 有理数运算和解析器
+- **06_error_internal_tests.rs** (46 个测试): 错误处理和内部模块
+- **07_user_defined_tests.rs** (8 个测试): 用户定义常量
+- **08_extended_tests.rs** (86 个测试): 扩展功能和边界情况
+- **e2e_integration_tests.rs** (34 个测试): 端到端集成测试
+
+### 额外测试
+
+- **基准测试** (`benches/calculator_bench.rs`): 24 个性能基准测试
+- **模糊测试** (`fuzz/`): 解析器安全模糊测试
 
 ### 测试覆盖
 
-- 基本算术运算
+- 基本和高级算术运算
+- **紧凑格式输入**（无空格）：`1+1`, `2*3`, `1e+3`
+- 精确有理数运算
+- **紧凑分数语法**：`1/2+1/3`, `(1/2)*6`
 - 数字格式解析（二进制、八进制、十六进制）
 - 数学常数（C_PI, C_E）
-- 函数计算（内置和用户定义）
-- 三角函数
-- 位运算
-- 阶乘、求和、连乘和数列求和函数
-- 数列运算
-- 用户定义函数、数列和常量
-- 比较运算符（<, >, =, ==）
-- 错误处理和非法输入
-- 边界情况（嵌套括号、大/小数）
-- 词法分析和语法分析
-- 交互式 REPL 命令
+- 所有数学函数（内置和用户定义）
 
 ## 项目结构
 
 ```
 ralqlator/
 ├── Cargo.toml              # 项目配置
+├── build.rs                # 从 git 生成版本信息
 ├── README.md               # 英文文档
 ├── README_zh.md            # 中文文档
-├── agent.md                # AI 助手文档
+├── TESTING.md              # 测试指南
+├── HELP_UPDATE.md          # 帮助系统文档
+├── OPTIMIZATION_SUMMARY.md # 优化总结
+├── COMMIT_MESSAGE.md       # 提交信息模板
+├── benches/                # 性能基准测试
+│   └── calculator_bench.rs
+├── fuzz/                   # 模糊测试配置
+│   ├── Cargo.toml
+│   └── fuzz_targets/
+│       └── parse_expression.rs
+├── scripts/                # 工具脚本
+│   └── generate_version.sh
 └── src/
     ├── main.rs             # 程序入口
     ├── cli.rs              # CLI 参数定义
-    ├── repl.rs             # 交互式 REPL（支持模式切换）
+    ├── repl.rs             # 交互式 REPL
     ├── calculator.rs       # 计算编排
     ├── evaluator.rs        # 表达式求值
     ├── functions.rs        # 数学函数
     ├── operator.rs         # 运算符定义
     ├── shunting_yard.rs    # 中缀转后缀算法
-    └── token.rs            # 词法分析
+    ├── token.rs            # 词法分析
+    ├── parser.rs           # AST 解析器（递归下降）[新增]
+    ├── value.rs            # 统一 Value 类型 [新增]
+    ├── rational.rs         # 有理数工具 [新增]
+    ├── error.rs            # 错误处理 [新增]
+    └── lib.rs              # 库导出 [新增]
 
 tests/
-├── arithmetic_tests.rs     # 基本算术运算
-├── bitwise_tests.rs        # 位运算
-├── cli_tests.rs            # CLI 参数和选项
-├── comparison_tests.rs     # 比较运算符
-├── constants_tests.rs      # 数学常数
-├── edge_cases_tests.rs     # 边界条件
-├── error_handling_tests.rs # 错误处理
-├── functions_tests.rs      # 数学函数
-├── interactive_tests.rs    # REPL 交互模式
-├── internal_tests.rs       # 内部模块测试
-├── number_formats_tests.rs # 数字格式输入输出
-└── user_defined_tests.rs   # 用户定义函数/常量
+├── 01_core_tests.rs        # 核心算术、位运算、比较
+├── 02_functions_tests.rs   # 数学函数
+├── 03_cli_formats_tests.rs # CLI 和数字格式
+├── 04_repl_tests.rs        # REPL 交互模式
+├── 05_rational_tests.rs    # 有理数运算
+├── 06_error_internal_tests.rs # 错误处理和内部模块
+├── 07_user_defined_tests.rs # 用户定义常量
+├── 08_extended_tests.rs    # 扩展功能
+├── e2e_integration_tests.rs # 端到端测试
+└── README.md               # 测试文档
 ```
 
 ## 示例
 
+### 标准格式（带空格）
 ```bash
-# 复杂表达式
-ralqlator "sqrt(pow(3, 2) + pow(4, 2))"    # 输出：5
+ralqlator "1 + 2 * 3"                    # 输出：7
+ralqlator "10 / 2 + 5"                   # 输出：10
+```
 
-# 科学记数法（显示两种格式）
-ralqlator "1e3 + 2.5e-3"                   # 输出：1000.0025
-                                 #   (scientific: 1.002500e3)
+### 紧凑格式（无空格）
+```bash
+ralqlator "1+2*3"                        # 输出：7
+ralqlator "10/2+5"                       # 输出：10
+ralqlator "1+1"                          # 输出：2
+ralqlator "2^10"                         # 输出：1024
+```
 
-# 混合格式
-ralqlator "0xFF + 0b1010"                  # 输出：265
+### 科学记数法
+```bash
+ralqlator "1e+3"                         # 输出：1000
+ralqlator "1e-3"                         # 输出：0.001
+ralqlator "1e+3+1e-3"                    # 输出：1000.001
+ralqlator "1.5e+2"                       # 输出：150
+```
 
-# 使用常数
-ralqlator "C_PI * 2"                       # 输出：6.28318
-ralqlator "sin(C_PI / 2) + cos(0)"         # 输出：2
+### 分数输入
+```bash
+ralqlator "1/2"                          # 输出：0.5
+ralqlator "1/2+1/3"                      # 输出：0.833333...
+ralqlator "(1/2)*6"                      # 输出：3
+```
 
-# 比较运算符
-ralqlator "5 > 3"                          # 输出：true
-ralqlator "5 = 5"                          # 输出：yes
+### 复杂表达式
+```bash
+ralqlator "sqrt(pow(3, 2) + pow(4, 2))"  # 输出：5
+ralqlator "2*3+4*5"                      # 输出：26
+ralqlator "(1+2)*(3+4)"                  # 输出：21
+ralqlator "10--5"                        # 输出：15
+```
 
-# 对数
-ralqlator "lg(1000)"                       # 输出：3
-ralqlator "log(8, 2)"                      # 输出：3
+### 混合格式
+```bash
+ralqlator "0xFF + 0b1010"                # 输出：265
+```
 
-# 位运算带格式输出
-ralqlator -Bb "8 << 2"                     # 输出：0b100000
+### 使用常数
+```bash
+ralqlator "C_PI * 2"                     # 输出：6.28318
+ralqlator "sin(C_PI / 2) + cos(0)"       # 输出：2
+```
 
-# 负的非十进制数（使用括号）
-ralqlator "-(0xFF)"                        # 输出：-255
+### 比较运算符
+```bash
+ralqlator "5 > 3"                        # 输出：true
+ralqlator "5 = 5"                        # 输出：true
+ralqlator "5>3"                          # 输出：true  （紧凑格式）
+```
 
-# 用户定义函数
+### 对数
+```bash
+ralqlator "lg(1000)"                     # 输出：3
+ralqlator "log(8, 2)"                    # 输出：3
+```
+
+### 位运算带格式输出
+```bash
+ralqlator -Bb "8 << 2"                   # 输出：0b100000
+```
+
+### 负的非十进制数
+```bash
+ralqlator "-(0xFF)"                      # 输出：-255
+```
+
+### 交互模式
+```bash
 ralqlator
 > create func f(x) = x^2
 > f(5)
 25
 
-# 用户定义数列
 > create seq triangle(n) = n*(n+1)/2
 > suma(triangle, 1, 5)
 35
 
-# 用户定义常量
 > create const G 9.81
 > G * 10
 98.1
 
-# 帮助系统
 > help operators
 > help functions
 > help create
