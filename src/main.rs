@@ -41,12 +41,15 @@ use repl::{
 
 /// Print version information
 fn print_version() {
-    let git_tag = env!("GIT_TAG", "unknown");
-    let git_commit = env!("GIT_COMMIT", "unknown");
-    let rust_version = env!("RUST_VERSION", "unknown");
-
+    let git_tag = env!("GIT_TAG");
+    let git_commit = env!("GIT_COMMIT");
+    let git_date = env!("GIT_DATE");
+    let rust_version = env!("RUST_VERSION");
+    let build_time = env!("BUILD_TIME");
+    
     println!("Ralqlator {}", git_tag);
-    println!("Git Commit: {}", git_commit);
+    println!("Git Commit: {} ({})", git_commit, git_date);
+    println!("Build Time: {}", build_time);
     println!("Rust Version: {}", rust_version);
     println!();
     println!("Copyright (C) 2026 Ralqlator Contributors");

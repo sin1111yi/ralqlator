@@ -1,7 +1,10 @@
 // Ralqlator Build Script
-// Generates version information from git
+// Generates version information from git during build
 
 use std::process::Command;
+use std::env;
+use std::fs;
+use std::path::Path;
 
 fn main() {
     // Get git commit hash
@@ -22,6 +25,15 @@ fn main() {
         .map(|s| s.trim().to_string())
         .unwrap_or_else(|| "unknown".to_string());
 
+    // Get git commit date
+    let git_date = Command::new("git")
+        .args(["log", "-1", "--format=%cd", "--date=short"])
+        .output()
+        .ok()
+        .and_then(|output| String::from_utf8(output.stdout).ok())
+        .map(|s| s.trim().to_string())
+        .unwrap_or_else(|| "unknown".to_string());
+
     // Get rust version
     let rust_version = Command::new("rustc")
         .args(["--version"])
@@ -31,12 +43,87 @@ fn main() {
         .map(|s| s.trim().to_string())
         .unwrap_or_else(|| "unknown".to_string());
 
+    // Get build timestamp
+    let build_time = chrono_lite_timestamp();
+
     // Set environment variables for use in the code
-    println!("cargo:rustc-env=GIT_COMMIT={}", git_commit);
     println!("cargo:rustc-env=GIT_TAG={}", git_tag);
+    println!("cargo:rustc-env=GIT_COMMIT={}", git_commit);
+    println!("cargo:rustc-env=GIT_DATE={}", git_date);
     println!("cargo:rustc-env=RUST_VERSION={}", rust_version);
+    println!("cargo:rustc-env=BUILD_TIME={}", build_time);
+
+    // Generate version_info.rs file
+    let out_dir = env::var("OUT_DIR").unwrap_or_else(|_| ".".to_string());
+    let dest_path = Path::new(&out_dir).join("version_info.rs");
+    
+    let version_content = format!(
+        r#"// Auto-generated version information
+// DO NOT EDIT MANUALLY
+// Generated at: {}
+
+/// Ralqlator version string
+pub const VERSION: &str = "{}";
+
+/// Git commit hash
+pub const GIT_COMMIT: &str = "{}";
+
+/// Git commit date
+pub const GIT_DATE: &str = "{}";
+
+/// Build timestamp
+pub const BUILD_TIME: &str = "{}";
+
+/// Rust version used for building
+pub const RUST_VERSION: &str = "{}";
+
+/// Full version string
+pub fn get_full_version() -> String {{
+    format!("{{}} (commit {{}}, built {{}})", VERSION, GIT_COMMIT, BUILD_TIME)
+}}
+
+/// Version information for display
+pub fn get_version_info() -> String {{
+    format!(
+        "Ralqlator {{}}\\n\
+         Git Commit: {{}} ({{}})\\n\
+         Build Time: {{}}\\n\
+         Rust Version: {{}}",
+        VERSION, GIT_COMMIT, GIT_DATE, BUILD_TIME, RUST_VERSION
+    )
+}}
+"#,
+        build_time, git_tag, git_commit, git_date, build_time, rust_version
+    );
+    
+    fs::write(&dest_path, version_content).expect("Failed to write version_info.rs");
 
     // Re-run if git HEAD changes
     println!("cargo:rerun-if-changed=.git/HEAD");
     println!("cargo:rerun-if-changed=.git/refs/heads");
+    println!("cargo:rerun-if-changed=.git/refs/tags");
+}
+
+/// Generate a simple timestamp without external dependencies
+fn chrono_lite_timestamp() -> String {
+    // Use environment variable or generate a simple one
+    // This is a fallback - in real builds, you might want to use chrono crate
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .ok()
+        .and_then(|d| {
+            let secs = d.as_secs();
+            // Simple conversion to YYYY-MM-DD HH:MM:SS format
+            // This is approximate and doesn't handle timezones
+            let days_since_epoch = secs / 86400;
+            let year = 1970 + (days_since_epoch / 365) as u32;
+            let day_of_year = (days_since_epoch % 365) as u32;
+            let month = ((day_of_year * 12) / 365) + 1;
+            let day = ((day_of_year * 30) % 30) + 1;
+            let hour = ((secs % 86400) / 3600) as u32;
+            let min = ((secs % 3600) / 60) as u32;
+            let sec = (secs % 60) as u32;
+            Some(format!("{:04}-{:02}-{:02} {:02}:{:02}:{:02} UTC", year, month, day, hour, min, sec))
+        })
+        .unwrap_or_else(|| "unknown".to_string())
 }
