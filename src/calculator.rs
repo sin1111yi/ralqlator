@@ -472,6 +472,46 @@ pub fn create_user_sequence(
 pub fn calculate_bitwise(expression: &str) -> Result<i64, String> {
     let tokens = tokenize(expression, true);
 
+    // Pre-check: reject floating point numbers and non-bitwise operators
+    for token in &tokens {
+        match token {
+            Token::Number(s) => {
+                // Reject floating point numbers
+                if s.contains('.') {
+                    return Err(format!(
+                        "Bitwise mode only supports integers, got: {}",
+                        s
+                    ));
+                }
+                // Reject scientific notation
+                if s.contains('e') || s.contains('E') {
+                    return Err(format!(
+                        "Bitwise mode does not support scientific notation, got: {}",
+                        s
+                    ));
+                }
+            }
+            Token::Identifier(s) => {
+                // Reject function calls and constants
+                return Err(format!(
+                    "Bitwise mode does not support functions or constants, got: {}",
+                    s
+                ));
+            }
+            Token::Operator(s) => {
+                // Allow only bitwise operators
+                let allowed_ops = ["&", "|", "^", "~", "<<", ">>"];
+                if !allowed_ops.contains(&s.as_str()) {
+                    return Err(format!(
+                        "Operator '{}' is not supported in bitwise mode. Use: & | ^ ~ << >>",
+                        s
+                    ));
+                }
+            }
+            _ => {}
+        }
+    }
+
     // Convert Token Vec<String> for legacy shunting_yard
     let string_tokens: Vec<String> = tokens
         .iter()
