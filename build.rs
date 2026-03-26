@@ -104,26 +104,85 @@ pub fn get_version_info() -> String {{
     println!("cargo:rerun-if-changed=.git/refs/tags");
 }
 
-/// Generate a simple timestamp without external dependencies
+/// Generate build timestamp without external dependencies
 fn chrono_lite_timestamp() -> String {
-    // Use environment variable or generate a simple one
-    // This is a fallback - in real builds, you might want to use chrono crate
-    std::time::SystemTime::now()
+    // Use SOURCE_DATE_EPOCH for reproducible builds if set
+    if let Ok(epoch) = std::env::var("SOURCE_DATE_EPOCH") {
+        if let Ok(secs) = epoch.parse::<u64>() {
+            return format_epoch(secs);
+        }
+    }
+    
+    // Use current system time
+    let secs = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
-        .ok()
-        .and_then(|d| {
-            let secs = d.as_secs();
-            // Simple conversion to YYYY-MM-DD HH:MM:SS format
-            // This is approximate and doesn't handle timezones
-            let days_since_epoch = secs / 86400;
-            let year = 1970 + (days_since_epoch / 365) as u32;
-            let day_of_year = (days_since_epoch % 365) as u32;
-            let month = ((day_of_year * 12) / 365) + 1;
-            let day = ((day_of_year * 30) % 30) + 1;
-            let hour = ((secs % 86400) / 3600) as u32;
-            let min = ((secs % 3600) / 60) as u32;
-            let sec = (secs % 60) as u32;
-            Some(format!("{:04}-{:02}-{:02} {:02}:{:02}:{:02} UTC", year, month, day, hour, min, sec))
-        })
-        .unwrap_or_else(|| "unknown".to_string())
+        .map(|d| d.as_secs())
+        .unwrap_or(0);
+    
+    format_epoch(secs)
+}
+
+/// Format epoch seconds as YYYY-MM-DD HH:MM:SS UTC
+fn format_epoch(secs: u64) -> String {
+    // Days since epoch and time of day
+    let days = secs / 86400;
+    let remaining = secs % 86400;
+    let hour = (remaining / 3600) as u32;
+    let min = ((remaining % 3600) / 60) as u32;
+    let sec = (remaining % 60) as u32;
+    
+    // Calculate year, month, day from days since 1970-01-01
+    let (year, month, day) = days_to_ymd(days);
+    
+    format!("{:04}-{:02}-{:02} {:02}:{:02}:{:02} UTC", year, month, day, hour, min, sec)
+}
+
+/// Convert days since 1970-01-01 to year, month, day
+/// Uses a simplified algorithm that accounts for leap years
+fn days_to_ymd(days: u64) -> (u32, u32, u32) {
+    let mut remaining_days = days as i64;
+    let mut year = 1970;
+    
+    // Find the year
+    loop {
+        let days_in_year = if is_leap_year(year) { 366 } else { 365 };
+        if remaining_days < days_in_year {
+            break;
+        }
+        remaining_days -= days_in_year;
+        year += 1;
+    }
+    
+    // Find the month
+    let days_in_months = [
+        31, // January
+        if is_leap_year(year) { 29 } else { 28 }, // February
+        31, // March
+        30, // April
+        31, // May
+        30, // June
+        31, // July
+        31, // August
+        30, // September
+        31, // October
+        30, // November
+        31, // December
+    ];
+    
+    let mut month = 1;
+    for days_in_month in days_in_months.iter() {
+        if remaining_days < *days_in_month {
+            break;
+        }
+        remaining_days -= *days_in_month;
+        month += 1;
+    }
+    
+    let day = (remaining_days + 1) as u32;
+    (year, month, day)
+}
+
+/// Check if a year is a leap year
+fn is_leap_year(year: u32) -> bool {
+    (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0)
 }
