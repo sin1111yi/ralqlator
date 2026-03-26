@@ -5,6 +5,7 @@ use std::process::Command;
 use std::env;
 use std::fs;
 use std::path::Path;
+use chrono::{DateTime, Local};
 
 fn main() {
     // Get git commit hash
@@ -43,8 +44,8 @@ fn main() {
         .map(|s| s.trim().to_string())
         .unwrap_or_else(|| "unknown".to_string());
 
-    // Get build timestamp
-    let build_time = chrono_lite_timestamp();
+    // Get build timestamp using chrono
+    let build_time = get_build_timestamp();
 
     // Set environment variables for use in the code
     println!("cargo:rustc-env=GIT_TAG={}", git_tag);
@@ -104,85 +105,20 @@ pub fn get_version_info() -> String {{
     println!("cargo:rerun-if-changed=.git/refs/tags");
 }
 
-/// Generate build timestamp without external dependencies
-fn chrono_lite_timestamp() -> String {
+/// Get build timestamp using chrono
+/// Supports SOURCE_DATE_EPOCH for reproducible builds
+fn get_build_timestamp() -> String {
     // Use SOURCE_DATE_EPOCH for reproducible builds if set
-    if let Ok(epoch) = std::env::var("SOURCE_DATE_EPOCH") {
-        if let Ok(secs) = epoch.parse::<u64>() {
-            return format_epoch(secs);
+    if let Ok(epoch) = env::var("SOURCE_DATE_EPOCH") {
+        if let Ok(secs) = epoch.parse::<i64>() {
+            let datetime = DateTime::from_timestamp(secs, 0)
+                .map(|dt| dt.with_timezone(&Local))
+                .unwrap_or_else(|| Local::now());
+            return datetime.format("%Y-%m-%d %H:%M:%S UTC").to_string();
         }
     }
     
-    // Use current system time
-    let secs = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map(|d| d.as_secs())
-        .unwrap_or(0);
-    
-    format_epoch(secs)
-}
-
-/// Format epoch seconds as YYYY-MM-DD HH:MM:SS UTC
-fn format_epoch(secs: u64) -> String {
-    // Days since epoch and time of day
-    let days = secs / 86400;
-    let remaining = secs % 86400;
-    let hour = (remaining / 3600) as u32;
-    let min = ((remaining % 3600) / 60) as u32;
-    let sec = (remaining % 60) as u32;
-    
-    // Calculate year, month, day from days since 1970-01-01
-    let (year, month, day) = days_to_ymd(days);
-    
-    format!("{:04}-{:02}-{:02} {:02}:{:02}:{:02} UTC", year, month, day, hour, min, sec)
-}
-
-/// Convert days since 1970-01-01 to year, month, day
-/// Uses a simplified algorithm that accounts for leap years
-fn days_to_ymd(days: u64) -> (u32, u32, u32) {
-    let mut remaining_days = days as i64;
-    let mut year = 1970;
-    
-    // Find the year
-    loop {
-        let days_in_year = if is_leap_year(year) { 366 } else { 365 };
-        if remaining_days < days_in_year {
-            break;
-        }
-        remaining_days -= days_in_year;
-        year += 1;
-    }
-    
-    // Find the month
-    let days_in_months = [
-        31, // January
-        if is_leap_year(year) { 29 } else { 28 }, // February
-        31, // March
-        30, // April
-        31, // May
-        30, // June
-        31, // July
-        31, // August
-        30, // September
-        31, // October
-        30, // November
-        31, // December
-    ];
-    
-    let mut month = 1;
-    for days_in_month in days_in_months.iter() {
-        if remaining_days < *days_in_month {
-            break;
-        }
-        remaining_days -= *days_in_month;
-        month += 1;
-    }
-    
-    let day = (remaining_days + 1) as u32;
-    (year, month, day)
-}
-
-/// Check if a year is a leap year
-fn is_leap_year(year: u32) -> bool {
-    (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0)
+    // Use current local time
+    let now = Local::now();
+    now.format("%Y-%m-%d %H:%M:%S UTC").to_string()
 }

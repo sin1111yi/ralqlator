@@ -4,6 +4,9 @@ version = "0.3.1"
 edition = "2021"
 build = "build.rs"
 
+[build-dependencies]
+chrono = "0.4"                 # Date/time handling for build script
+
 [dependencies]
 # CLI and REPL
 clap = { version = "4.4", features = ["derive"] }
