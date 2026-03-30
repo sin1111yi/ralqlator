@@ -38,12 +38,15 @@ use clap::{Parser, Subcommand};
 #[command(author = "Ralqlator Contributors")]
 #[command(about = "A powerful command-line calculator", long_about = None)]
 #[command(after_help = "Examples:
-  ralqlator \"1 + 2 * 3\"        Calculate expression (output: 7)
-  ralqlator \"sin(C_PI / 2)\"    Use functions and constants (output: 1)
-  ralqlator -B \"12 & 10\"       Bitwise AND (output: 8)
-  ralqlator -x \"255\"           Hexadecimal output (output: 0xFF)
-  ralqlator                    Interactive REPL mode
-  ralqlator -B                   Interactive REPL in bitwise mode
+  ralqlator \"1 + 2 * 3\"              Calculate expression (output: 7)
+  ralqlator \"sin(C_PI / 2)\"          Use functions and constants (output: 1)
+  ralqlator -B \"12 & 10\"             Bitwise AND (output: 8)
+  ralqlator -x \"255\"                 Hexadecimal output (output: 0xFF)
+  ralqlator                            Interactive REPL mode
+  ralqlator -B                         Interactive REPL in bitwise mode
+  ralqlator -c \"func f(x) = x * 2\"   Create function from command line
+  ralqlator -d f                       Delete function 'f'
+  ralqlator -L                         List all user definitions
 
 For more information, visit: https://github.com/ralqlator/ralqlator")]
 pub struct Cli {
@@ -121,6 +124,39 @@ pub struct Cli {
         help_heading = "Help Options"
     )]
     pub show_constants: bool,
+
+    /// Create a user-defined function, sequence, or constant
+    ///
+    /// Format: --create func name(args) = expression
+    ///         --create seq name(n) = expression
+    ///         --create const NAME value
+    #[arg(
+        short = 'c',
+        long = "create",
+        value_name = "DEFINITION",
+        help_heading = "User Definitions",
+        num_args = 1
+    )]
+    pub create: Option<String>,
+
+    /// Delete a user-defined function, sequence, or constant by name
+    #[arg(
+        short = 'd',
+        long = "destroy",
+        value_name = "NAME",
+        help_heading = "User Definitions",
+        num_args = 1
+    )]
+    pub destroy: Option<String>,
+
+    /// List all user-defined functions, sequences, and constants
+    #[arg(
+        short = 'L',
+        long = "list",
+        action = clap::ArgAction::SetTrue,
+        help_heading = "User Definitions"
+    )]
+    pub list: bool,
 }
 
 /// Ralqlator subcommands for displaying help information

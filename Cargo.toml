@@ -19,6 +19,10 @@ num-bigint = "0.4"             # BigInt and BigUint for arbitrary precision inte
 num-rational = "0.4"           # Rational number support
 statrs = "0.17"                # Statistical functions and special functions
 
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+toml = "0.8"
+
 [dev-dependencies]
 criterion = "0.5"              # Benchmarking framework
 

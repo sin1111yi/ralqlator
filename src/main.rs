@@ -25,10 +25,13 @@ mod parser;
 mod rational;
 mod repl;
 mod shunting_yard;
+mod storage;
 mod token;
 mod value;
 
 use std::process;
+use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
 
 use clap::Parser;
 use cli::Cli;
@@ -38,6 +41,9 @@ use repl::{
     print_all_help, print_constants_help, print_formats_help, print_functions_help,
     print_operators_help,
 };
+use storage::{load_user_data, save_user_data, delete_user_definition};
+use functions::UserFunctions;
+use repl::UserConstants;
 
 /// Print version information
 fn print_version() {
@@ -210,6 +216,169 @@ fn main() {
         return;
     }
 
+    // Handle user definition commands (--create, --destroy, --list)
+    if cli.list {
+        // List all user definitions
+        let user_functions: UserFunctions = Arc::new(Mutex::new(HashMap::new()));
+        let user_constants: UserConstants = Arc::new(Mutex::new(HashMap::new()));
+        
+        match load_user_data(&user_functions, &user_constants) {
+            Ok(count) => {
+                if count > 0 {
+                    println!("User definitions ({} items):", count);
+                    println!();
+                    
+                    let funcs = user_functions.lock().unwrap();
+                    if !funcs.is_empty() {
+                        println!("Functions:");
+                        for (name, (params, expr)) in funcs.iter() {
+                            println!("  {}({}) = {}", name, params.join(", "), expr);
+                        }
+                        println!();
+                    }
+                    drop(funcs);
+                    
+                    let consts = user_constants.lock().unwrap();
+                    if !consts.is_empty() {
+                        println!("Constants:");
+                        for (name, value) in consts.iter() {
+                            println!("  {} = {}", name, value);
+                        }
+                        println!();
+                    }
+                } else {
+                    println!("No user definitions found.");
+                }
+            }
+            Err(e) => eprintln!("Error: {}", e),
+        }
+        return;
+    }
+
+    if let Some(create_def) = &cli.create {
+        // Create user definition from command line
+        let user_functions: UserFunctions = Arc::new(Mutex::new(HashMap::new()));
+        let user_constants: UserConstants = Arc::new(Mutex::new(HashMap::new()));
+        
+        // Load existing definitions
+        let _ = load_user_data(&user_functions, &user_constants);
+        
+        // Parse: func name(args) = expr | seq name(n) = expr | const NAME value
+        let create_lower = create_def.to_lowercase();
+        let mut created = false;
+        
+        if create_lower.starts_with("func ") || create_lower.starts_with("function ") || 
+           create_lower.starts_with("fn ") || create_lower.starts_with("f ") {
+            // Parse function definition
+            if let Some(eq_pos) = create_def.find('=') {
+                let header = create_def[..eq_pos].trim();
+                let expr = create_def[eq_pos + 1..].trim();
+                
+                // Extract name and params: name(args)
+                if let Some(paren_start) = header.find('(') {
+                    if let Some(paren_end) = header.find(')') {
+                        let name = header[..paren_start].trim();
+                        // Remove the type prefix (func/function/fn/f)
+                        let name = name.split_whitespace().last().unwrap_or(name);
+                        let args_str = header[paren_start + 1..paren_end].trim();
+                        let params: Vec<String> = args_str
+                            .split(',')
+                            .map(|s| s.trim().to_string())
+                            .filter(|s| !s.is_empty())
+                            .collect();
+                        
+                        match calculator::create_user_function(name, params, expr.to_string(), &user_functions) {
+                            Ok(()) => {
+                                match save_user_data(&user_functions, &user_constants) {
+                                    Ok(()) => println!("Function '{}' created and saved", name),
+                                    Err(e) => eprintln!("Error: Function created but failed to save: {}", e),
+                                }
+                                created = true;
+                            }
+                            Err(e) => eprintln!("Error: {}", e),
+                        }
+                    }
+                }
+            }
+        } else if create_lower.starts_with("seq ") || create_lower.starts_with("sequence ") ||
+                  create_lower.starts_with("s ") {
+            // Parse sequence definition
+            if let Some(eq_pos) = create_def.find('=') {
+                let header = create_def[..eq_pos].trim();
+                let expr = create_def[eq_pos + 1..].trim();
+                
+                if let Some(paren_start) = header.find('(') {
+                    if let Some(paren_end) = header.find(')') {
+                        let name = header[..paren_start].trim();
+                        let name = name.split_whitespace().last().unwrap_or(name);
+                        let param = header[paren_start + 1..paren_end].trim().to_string();
+                        
+                        match calculator::create_user_sequence(name, param, expr.to_string(), &user_functions) {
+                            Ok(()) => {
+                                match save_user_data(&user_functions, &user_constants) {
+                                    Ok(()) => println!("Sequence '{}' created and saved", name),
+                                    Err(e) => eprintln!("Error: Sequence created but failed to save: {}", e),
+                                }
+                                created = true;
+                            }
+                            Err(e) => eprintln!("Error: {}", e),
+                        }
+                    }
+                }
+            }
+        } else if create_lower.starts_with("const ") || create_lower.starts_with("c ") ||
+                  create_lower.starts_with("constant ") {
+            // Parse constant definition: const NAME value
+            let parts: Vec<&str> = create_def.split_whitespace().collect();
+            if parts.len() >= 3 {
+                let name = parts[1];
+                if let Ok(value) = parts[2].parse::<f64>() {
+                    match calculator::create_user_constant(name, value, &user_constants) {
+                        Ok(()) => {
+                            match save_user_data(&user_functions, &user_constants) {
+                                Ok(()) => println!("Constant '{}' = {} created and saved", name, value),
+                                Err(e) => eprintln!("Error: Constant created but failed to save: {}", e),
+                            }
+                            created = true;
+                        }
+                        Err(e) => eprintln!("Error: {}", e),
+                    }
+                } else {
+                    eprintln!("Error: Invalid number: '{}'", parts[2]);
+                }
+            }
+        }
+        
+        if !created && !create_def.is_empty() {
+            eprintln!("Usage: -c \"func name(args) = expression\"");
+            eprintln!("       -c \"seq name(n) = expression\"");
+            eprintln!("       -c \"const NAME value\"");
+            process::exit(1);
+        }
+        return;
+    }
+
+    if let Some(name) = &cli.destroy {
+        // Delete user definition
+        let user_functions: UserFunctions = Arc::new(Mutex::new(HashMap::new()));
+        let user_constants: UserConstants = Arc::new(Mutex::new(HashMap::new()));
+        
+        let _ = load_user_data(&user_functions, &user_constants);
+        
+        match delete_user_definition(name, &user_functions, &user_constants) {
+            Ok(true) => println!("Definition '{}' deleted", name),
+            Ok(false) => {
+                eprintln!("Definition '{}' not found", name);
+                process::exit(1);
+            }
+            Err(e) => {
+                eprintln!("Error: {}", e);
+                process::exit(1);
+            }
+        }
+        return;
+    }
+
     // Handle expression calculation
     if let Some(expr) = cli.expression.or(cli.row) {
         if cli.bits {
@@ -222,8 +391,12 @@ fn main() {
                 }
             }
         } else {
-            // Standard mode
-            match calculator::calculate(&expr) {
+            // Standard mode - load user definitions first
+            let user_functions: UserFunctions = Arc::new(Mutex::new(HashMap::new()));
+            let user_constants: UserConstants = Arc::new(Mutex::new(HashMap::new()));
+            let _ = load_user_data(&user_functions, &user_constants);
+            
+            match calculator::calculate_with_functions(&expr, &user_functions, &user_constants) {
                 Ok(result) => {
                     if let Err(e) = print_result(result, cli.hex, cli.oct, cli.bin, &expr) {
                         eprintln!("Error: {}", e);

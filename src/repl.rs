@@ -37,6 +37,7 @@ use crate::calculator::{
 };
 use crate::evaluator::format_comparison_result;
 use crate::functions::UserFunctions;
+use crate::storage::{self, load_user_data, save_user_data};
 
 /// User-defined constants type
 pub type UserConstants = Arc<Mutex<HashMap<String, f64>>>;
@@ -53,6 +54,7 @@ const COMMANDS: &[&str] = &[
     "oct",
     "bin",
     "create",
+    "destroy",
     "q",
     "quit",
 ];
@@ -589,6 +591,7 @@ pub fn print_help_command() {
     println!("    hex/oct/bin          Convert last result format");
     println!("    @                    Insert last result");
     println!("    create <f|s|c> ...   Define function, sequence, or constant");
+    println!("    destroy <name>       Delete a definition by name");
     println!("    q/quit               Exit");
     println!();
     println!("  Tips:");
@@ -642,6 +645,18 @@ fn run_repl_with_mode(initial_mode: CalcMode) {
     let last_result_i64 = Arc::new(LastResultI64::new());
     let user_functions: UserFunctions = Arc::new(Mutex::new(HashMap::new()));
     let user_constants: UserConstants = Arc::new(Mutex::new(HashMap::new()));
+
+    // Auto-load user definitions from storage file
+    match load_user_data(&user_functions, &user_constants) {
+        Ok(count) => {
+            if count > 0 {
+                println!("Loaded {} definitions from {}\n", count, storage::get_storage_path_string());
+            }
+        }
+        Err(e) => {
+            eprintln!("Warning: Failed to load saved definitions: {}\n", e);
+        }
+    }
 
     loop {
         let input = rl.readline("> ");
@@ -764,7 +779,13 @@ fn run_repl_with_mode(initial_mode: CalcMode) {
                                     expr.to_string(),
                                     &user_functions,
                                 ) {
-                                    Ok(()) => println!("Function '{}' defined\n", name),
+                                    Ok(()) => {
+                                        println!("Function '{}' defined\n", name);
+                                        // Auto-save after creation
+                                        if let Err(e) = save_user_data(&user_functions, &user_constants) {
+                                            eprintln!("Warning: Failed to auto-save: {}\n", e);
+                                        }
+                                    }
                                     Err(e) => eprintln!("Error: {}\n", e),
                                 }
                                 continue;
@@ -800,10 +821,13 @@ fn run_repl_with_mode(initial_mode: CalcMode) {
                                     expr.to_string(),
                                     &user_functions,
                                 ) {
-                                    Ok(()) => println!(
-                                        "Sequence '{}' defined: {}(n) = {}\n",
-                                        name, name, expr
-                                    ),
+                                    Ok(()) => {
+                                        println!("Sequence '{}' defined: {}(n) = {}\n", name, name, expr);
+                                        // Auto-save after creation
+                                        if let Err(e) = save_user_data(&user_functions, &user_constants) {
+                                            eprintln!("Warning: Failed to auto-save: {}\n", e);
+                                        }
+                                    }
                                     Err(e) => eprintln!("Error: {}\n", e),
                                 }
                                 continue;
@@ -820,7 +844,13 @@ fn run_repl_with_mode(initial_mode: CalcMode) {
                         match parts[1].parse::<f64>() {
                             Ok(value) => {
                                 match create_user_constant(&name, value, &user_constants) {
-                                    Ok(()) => println!("Constant '{}' = {}\n", name, value),
+                                    Ok(()) => {
+                                        println!("Constant '{}' = {}\n", name, value);
+                                        // Auto-save after creation
+                                        if let Err(e) = save_user_data(&user_functions, &user_constants) {
+                                            eprintln!("Warning: Failed to auto-save: {}\n", e);
+                                        }
+                                    }
                                     Err(e) => eprintln!("Error: {}\n", e),
                                 }
                             }
@@ -835,6 +865,37 @@ fn run_repl_with_mode(initial_mode: CalcMode) {
                     eprintln!("Usage: create <func|seq|const> ...\n");
                     continue;
                 }
+            }
+            continue;
+        }
+
+        // Handle destroy command
+        if input_lower == "destroy" || input_lower.starts_with("destroy ") {
+            let args: Vec<&str> = input_lower.split_whitespace().collect();
+            if args.len() == 1 || (args.len() >= 2 && (args[1] == "--help" || args[1] == "-h")) {
+                println!("Destroy Command - Delete user-defined functions, sequences, or constants");
+                println!();
+                println!("  Usage:");
+                println!("    destroy <name>         Delete a definition by name");
+                println!("    destroy --help         Show this help");
+                println!();
+                println!("  Description:");
+                println!("    Deletes a user-defined function, sequence, or constant");
+                println!("    by name and auto-saves the changes.");
+                println!();
+                println!("  Examples:");
+                println!("    destroy f              Delete function 'f'");
+                println!("    destroy MY_CONST       Delete constant 'MY_CONST'");
+                println!();
+            } else if args.len() == 2 {
+                let name = args[1];
+                match storage::delete_user_definition(name, &user_functions, &user_constants) {
+                    Ok(true) => println!("Deleted '{}' and saved\n", name),
+                    Ok(false) => eprintln!("Definition '{}' not found\n", name),
+                    Err(e) => eprintln!("Error: {}\n", e),
+                }
+            } else {
+                eprintln!("Usage: destroy <name>\n");
             }
             continue;
         }
@@ -955,6 +1016,11 @@ fn run_repl_with_mode(initial_mode: CalcMode) {
         }
 
         if processed.eq_ignore_ascii_case("q") || processed.eq_ignore_ascii_case("quit") {
+            // Auto-save user definitions before exiting
+            match save_user_data(&user_functions, &user_constants) {
+                Ok(()) => println!("User definitions saved to {}", storage::get_storage_path_string()),
+                Err(e) => eprintln!("Warning: Failed to save: {}", e),
+            }
             break;
         }
 
