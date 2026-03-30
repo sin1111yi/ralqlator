@@ -514,18 +514,71 @@ fn test_multiple_create_same_type() {
 fn test_repl_destroy() {
     let _guard = TEST_LOCK.lock().unwrap();
     cleanup_storage();
-    
+
     run_cli(&["-c", "func repl_test(x) = x * 3"]);
-    
+
     let output = Command::new("bash")
         .arg("-c")
         .arg("printf 'destroy repl_test\\nquit\\n' | cargo run -- 2>&1")
         .output()
         .expect("Failed to execute command");
     let stdout = String::from_utf8_lossy(&output.stdout).to_string();
-    
+
     assert!(stdout.contains("Deleted") || stdout.contains("deleted"),
             "Should show deleted: {}", stdout);
+    cleanup_storage();
+}
+
+#[test]
+fn test_repl_destroy_case_sensitive() {
+    let _guard = TEST_LOCK.lock().unwrap();
+    cleanup_storage();
+
+    // Create function with mixed case name
+    run_cli(&["-c", "func dBuV(x) = 20 * lg(x * 1e6)"]);
+
+    // Try to destroy with wrong case via REPL
+    let output = Command::new("bash")
+        .arg("-c")
+        .arg("printf 'destroy dbuv\\nquit\\n' | cargo run -- 2>&1")
+        .output()
+        .expect("Failed to execute command");
+    let stdout = String::from_utf8_lossy(&output.stdout).to_string();
+
+    // Should show helpful error with suggestion
+    assert!(
+        stdout.contains("not found") && stdout.contains("Did you mean"),
+        "Should show helpful error with suggestion: {}",
+        stdout
+    );
+    assert!(stdout.contains("dBuV"), "Should suggest correct name: {}", stdout);
+
+    cleanup_storage();
+}
+
+#[test]
+fn test_repl_destroy_correct_case() {
+    let _guard = TEST_LOCK.lock().unwrap();
+    cleanup_storage();
+
+    // Create function with mixed case name
+    run_cli(&["-c", "func MyFunc(x) = x * 2"]);
+
+    // Destroy with correct case via REPL
+    let output = Command::new("bash")
+        .arg("-c")
+        .arg("printf 'destroy MyFunc\\nquit\\n' | cargo run -- 2>&1")
+        .output()
+        .expect("Failed to execute command");
+    let stdout = String::from_utf8_lossy(&output.stdout).to_string();
+
+    // Should succeed
+    assert!(
+        stdout.contains("Deleted") || stdout.contains("deleted"),
+        "Should show deleted: {}",
+        stdout
+    );
+
     cleanup_storage();
 }
 
@@ -533,7 +586,7 @@ fn test_repl_destroy() {
 fn test_repl_destroy_nonexistent() {
     let _guard = TEST_LOCK.lock().unwrap();
     cleanup_storage();
-    
+
     let output = Command::new("bash")
         .arg("-c")
         .arg("printf 'destroy nonexistent\\nquit\\n' | cargo run -- 2>&1")
