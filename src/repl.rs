@@ -871,7 +871,10 @@ fn run_repl_with_mode(initial_mode: CalcMode) {
 
         // Handle destroy command
         if input_lower == "destroy" || input_lower.starts_with("destroy ") {
+            // Use original input to preserve case sensitivity for the name
+            let orig_args: Vec<&str> = input_trimmed.split_whitespace().collect();
             let args: Vec<&str> = input_lower.split_whitespace().collect();
+            
             if args.len() == 1 || (args.len() >= 2 && (args[1] == "--help" || args[1] == "-h")) {
                 println!("Destroy Command - Delete user-defined functions, sequences, or constants");
                 println!();
@@ -886,9 +889,11 @@ fn run_repl_with_mode(initial_mode: CalcMode) {
                 println!("  Examples:");
                 println!("    destroy f              Delete function 'f'");
                 println!("    destroy MY_CONST       Delete constant 'MY_CONST'");
+                println!("    destroy dBuV           Delete function 'dBuV' (case-sensitive)");
                 println!();
             } else if args.len() == 2 {
-                let name = args[1];
+                // Use original case name from orig_args
+                let name = orig_args[1];
                 match storage::delete_user_definition(name, &user_functions, &user_constants) {
                     Ok(true) => println!("Deleted '{}' and saved\n", name),
                     Ok(false) => eprintln!("Definition '{}' not found\n", name),

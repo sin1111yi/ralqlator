@@ -137,12 +137,13 @@ pub fn load_user_data(
 }
 
 /// Delete any user definition (function, sequence, or constant)
+/// Supports case-insensitive matching with helpful error messages
 pub fn delete_user_definition(
     name: &str,
     user_functions: &UserFunctions,
     user_constants: &UserConstants,
 ) -> StorageResult<bool> {
-    // Try to delete from functions first
+    // Try exact match first (case-sensitive)
     {
         let mut funcs = user_functions.lock().unwrap();
         if funcs.remove(name).is_some() {
@@ -151,8 +152,7 @@ pub fn delete_user_definition(
             return Ok(true);
         }
     }
-    
-    // Try to delete from constants
+
     {
         let mut consts = user_constants.lock().unwrap();
         if consts.remove(name).is_some() {
@@ -161,7 +161,36 @@ pub fn delete_user_definition(
             return Ok(true);
         }
     }
+
+    // If exact match fails, try case-insensitive search to provide helpful message
+    let name_lower = name.to_lowercase();
     
+    // Check functions for case-insensitive match
+    {
+        let funcs = user_functions.lock().unwrap();
+        for (key, _) in funcs.iter() {
+            if key.to_lowercase() == name_lower {
+                return Err(format!(
+                    "Definition '{}' not found. Did you mean '{}'? (names are case-sensitive)",
+                    name, key
+                ));
+            }
+        }
+    }
+
+    // Check constants for case-insensitive match
+    {
+        let consts = user_constants.lock().unwrap();
+        for (key, _) in consts.iter() {
+            if key.to_lowercase() == name_lower {
+                return Err(format!(
+                    "Definition '{}' not found. Did you mean '{}'? (names are case-sensitive)",
+                    name, key
+                ));
+            }
+        }
+    }
+
     Ok(false)
 }
 
