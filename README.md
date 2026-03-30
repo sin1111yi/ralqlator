@@ -33,10 +33,13 @@ A powerful command-line calculator written in Rust, featuring exact rational ari
 - **`float(x)`**: Convert rational to floating point
 - **Fraction Input**: Direct fraction syntax like `1/3`, `22/7`
 
-### User-Defined Elements
-- **Functions**: `create func name(args) = expression`
-- **Sequences**: `create seq name(n) = formula`
-- **Constants**: `create const NAME value`
+### User-Defined Elements (New in v0.4.0)
+- **Functions**: `create func name(args) = expression` or `-c "func f(x) = x * 2"`
+- **Sequences**: `create seq name(n) = formula` or `-c "seq a(n) = n * 2"`
+- **Constants**: `create const NAME value` or `-c "const G 9.81"`
+- **Persistence**: Auto-saved to `~/.ralqlator` (TOML format)
+- **CLI Management**: `-c` (create), `-d` (destroy), `-L` (list)
+- **REPL Commands**: `destroy <name>` to delete definitions
 
 ### Number Formats
 - **Input**: Decimal, binary (`0b`), octal (`0o`), hexadecimal (`0x`), scientific notation
@@ -130,6 +133,8 @@ In interactive mode:
 - Use `mode` command to switch between standard and bitwise modes
 - Use `help [topic]` for detailed help on specific topics
 - Use `create func/seq/const` to define functions, sequences, or constants
+- Use `destroy <name>` to delete user definitions
+- **Auto-saved** to `~/.ralqlator` on exit, **auto-loaded** on startup
 - Type `q` or `quit` to exit
 
 ```
@@ -172,7 +177,8 @@ Operators - Supported Operators
 | `create func` | Define custom function: `create func f(x,y) = x+y` |
 | `create seq` | Define sequence: `create seq a(n) = n*(n+1)/2` |
 | `create const` | Define constant: `create const NAME value` |
-| `q` / `quit` | Exit |
+| `destroy <name>` | Delete user definition (function/sequence/constant) |
+| `q` / `quit` | Exit (auto-saves all definitions) |
 | `mode` | Toggle between standard and bitwise modes |
 | `mode standard` | Switch to standard mode |
 | `mode bitwise` | Switch to bitwise mode |
@@ -358,6 +364,12 @@ Create custom constants in interactive mode:
 create const NAME value
 ```
 
+Or from command line:
+```bash
+ralqlator -c "const G 9.81"
+ralqlator -c "const SPEED_OF_LIGHT 299792458"
+```
+
 Examples:
 ```
 > create const G 9.81
@@ -371,6 +383,64 @@ Constant 'SPEED_OF_LIGHT' = 299792458
 ```
 
 Note: Constant names starting with `C_` are reserved for built-in constants.
+
+### Persistence (New in v0.4.0)
+
+All user-defined functions, sequences, and constants are:
+- **Auto-saved** to `~/.ralqlator` (hidden file in TOML format) when you:
+  - Create a definition (`create` command or `-c` flag)
+  - Delete a definition (`destroy` command or `-d` flag)
+  - Exit REPL (`quit` command)
+- **Auto-loaded** when you:
+  - Start REPL
+  - Run calculations from command line
+
+Storage file format (TOML):
+```toml
+[functions.square]
+params = ["x"]
+expr = "x * x"
+
+[functions.triangle]
+params = ["n"]
+expr = "n * (n + 1) / 2"
+
+[constants]
+G = 9.81
+SPEED_OF_LIGHT = 299792458.0
+```
+
+### Managing User Definitions
+
+**Command Line:**
+```bash
+# Create
+ralqlator -c "func f(x) = x * 2"
+ralqlator -c "seq triangle(n) = n * (n + 1) / 2"
+ralqlator -c "const G 9.81"
+
+# List all
+ralqlator -L
+
+# Delete
+ralqlator -d f
+ralqlator -d G
+
+# Use immediately after creation
+ralqlator -c "func double(x) = x * 2"
+ralqlator "double(21)"  # Output: 42
+```
+
+**REPL:**
+```
+> create func f(x) = x * 2
+Function 'f' defined
+
+> destroy f
+Deleted 'f' and saved
+
+> quit  # Auto-saves all definitions
+```
 
 ## Constants
 
@@ -433,6 +503,9 @@ Options:
   -O, --operators      Show help for operators
   -N, --formats        Show help for number formats
   -C, --constants      Show help for constants
+  -c, --create <DEF>   Create user definition (func/seq/const)
+  -d, --destroy <NAME> Delete user definition
+  -L, --list           List all user definitions
   -h, --help           Print help
 
 Commands:
@@ -474,7 +547,7 @@ Run all tests:
 cargo test
 ```
 
-The test suite includes **427+ test cases** organized in 9 test files:
+The test suite includes **450+ test cases** organized in 10 test files:
 
 ### Test Organization
 
@@ -486,6 +559,7 @@ The test suite includes **427+ test cases** organized in 9 test files:
 - **06_error_internal_tests.rs** (46 tests): Error handling and internal modules
 - **07_user_defined_tests.rs** (8 tests): User-defined constants
 - **08_extended_tests.rs** (86 tests): Extended functionality and edge cases
+- **09_storage_tests.rs** (19 tests): User definition persistence (create/destroy/list/auto-save/load) **(New in v0.4.0)**
 - **e2e_integration_tests.rs** (34 tests): End-to-end integration tests
 
 ### Additional Testing
@@ -509,6 +583,8 @@ The test suite includes **427+ test cases** organized in 9 test files:
 - Factorial, sum, prod, and suma functions
 - Sequence operations
 - User-defined functions, sequences, and constants
+- **Persistence**: Auto-save/load from `~/.ralqlator`
+- **CLI management**: Create/delete/list from command line
 - Comparison operators (<, >, =, ==)
 - Error handling and invalid input
 - Edge cases (nested parentheses, large/small numbers)
@@ -549,6 +625,7 @@ ralqlator/
     ├── value.rs            # Unified Value type
     ├── rational.rs         # Rational number utilities
     ├── error.rs            # Error handling
+    ├── storage.rs          # User definition persistence (TOML) **(New in v0.4.0)**
     └── lib.rs              # Library exports
 
 tests/
@@ -560,6 +637,7 @@ tests/
 ├── 06_error_internal_tests.rs # Error handling and internals
 ├── 07_user_defined_tests.rs # User-defined constants
 ├── 08_extended_tests.rs    # Extended functionality
+├── 09_storage_tests.rs     # Persistence storage tests **(New in v0.4.0)**
 ├── e2e_integration_tests.rs # End-to-end tests
 └── README.md               # Test documentation
 ```

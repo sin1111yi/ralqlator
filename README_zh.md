@@ -33,10 +33,13 @@
 - **`float(x)`**: 转换为浮点数
 - **分数输入**: 直接输入 `1/3`, `22/7` 等分数
 
-### 用户定义元素
-- **函数**: `create func name(args) = expression`
-- **数列**: `create seq name(n) = formula`
-- **常量**: `create const NAME value`
+### 用户定义元素（v0.4.0 新增）
+- **函数**: `create func name(args) = expression` 或 `-c "func f(x) = x * 2"`
+- **数列**: `create seq name(n) = formula` 或 `-c "seq a(n) = n * 2"`
+- **常量**: `create const NAME value` 或 `-c "const G 9.81"`
+- **持久化**: 自动保存到 `~/.ralqlator`（TOML 格式）
+- **CLI 管理**: `-c`（创建）、`-d`（删除）、`-L`（列出）
+- **REPL 命令**: `destroy <name>` 删除定义
 
 ### 数字格式
 - **输入**: 十进制、二进制 (`0b`)、八进制 (`0o`)、十六进制 (`0x`)、科学记数法
@@ -398,7 +401,7 @@ ralqlator info
 cargo test
 ```
 
-测试套件包含 **427+ 个测试用例**，分为 9 个测试文件：
+测试套件包含 **450+ 个测试用例**，分为 10 个测试文件：
 
 ### 测试组织
 
@@ -410,6 +413,7 @@ cargo test
 - **06_error_internal_tests.rs** (46 个测试): 错误处理和内部模块
 - **07_user_defined_tests.rs** (8 个测试): 用户定义常量
 - **08_extended_tests.rs** (86 个测试): 扩展功能和边界情况
+- **09_storage_tests.rs** (19 个测试): 用户定义持久化（创建/删除/列表/自动保存/加载） **(v0.4.0 新增)**
 - **e2e_integration_tests.rs** (34 个测试): 端到端集成测试
 
 ### 额外测试
@@ -461,6 +465,7 @@ ralqlator/
     ├── value.rs            # 统一 Value 类型 [新增]
     ├── rational.rs         # 有理数工具 [新增]
     ├── error.rs            # 错误处理 [新增]
+    ├── storage.rs          # 用户定义持久化存储 (TOML) **(v0.4.0 新增)**
     └── lib.rs              # 库导出 [新增]
 
 tests/
@@ -472,6 +477,7 @@ tests/
 ├── 06_error_internal_tests.rs # 错误处理和内部模块
 ├── 07_user_defined_tests.rs # 用户定义常量
 ├── 08_extended_tests.rs    # 扩展功能
+├── 09_storage_tests.rs     # 持久化存储测试 **(v0.4.0 新增)**
 ├── e2e_integration_tests.rs # 端到端测试
 └── README.md               # 测试文档
 ```
