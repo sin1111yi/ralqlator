@@ -533,7 +533,7 @@ pub fn print_operators_help_detailed() {
     println!("  Comparison Operators:");
     println!("    <    Less than          3 < 5 → true");
     println!("    >    Greater than       5 > 3 → true");
-    println!("    =    Equality           5 = 5 → yes");
+    println!("    =    Equality           5 = 5 → true");
     println!("    ==   Logical equality   5 == 5 → true");
     println!();
     println!("  Bitwise Operators (-B mode):");
@@ -547,7 +547,7 @@ pub fn print_operators_help_detailed() {
     println!("  Notes:");
     println!("    - Comparison operators have the lowest precedence");
     println!("    - < and > return true/false (relational comparison)");
-    println!("    - = returns yes/no (equality check)");
+    println!("    - = returns true/false (equality check)");
     println!("    - == returns true/false (logical equality)");
     println!();
 }

@@ -234,7 +234,7 @@ fn test_repl_user_const_rational() {
 #[test]
 fn test_repl_rational_equality() {
     let output = run_repl_commands(&["2/4 = 1/2"]);
-    assert!(output.contains("true") || output.contains("yes"));
+    assert!(output.contains("true") || output.contains("true"));
 }
 
 // ==================== Parser Integration Tests ====================

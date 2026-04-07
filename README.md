@@ -96,7 +96,7 @@ ralqlator "C_E ^ 2"                # Output: 7.389
 
 # Comparison operators
 ralqlator "5 > 3"                  # Output: true
-ralqlator "5 = 5"                  # Output: yes
+ralqlator "5 = 5"                  # Output: true
 
 # Bitwise operations
 ralqlator -B "12 & 10"             # Output: 8
@@ -219,12 +219,12 @@ ralqlator -B
 |----------|-------------|---------|--------|
 | `<` | Less than | `3 < 5` | `true` |
 | `>` | Greater than | `5 > 3` | `true` |
-| `=` | Equality check | `5 = 5` | `yes` |
+| `=` | Equality check | `5 = 5` | `true` |
 | `==` | Logical equality | `5 == 5` | `true` |
 
 **Note:** 
 - `<` and `>` return `true` or `false` (relational comparison)
-- `=` returns `yes` or `no` (equality check)
+- `=` returns `true` or `false` (equality check)
 - `==` returns `true` or `false` (logical equality)
 
 ### Bitwise Operators (use `-B` flag)

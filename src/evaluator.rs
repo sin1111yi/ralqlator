@@ -72,7 +72,7 @@ pub fn eval_postfix(postfix: Vec<String>) -> Result<f64, String> {
         } else if is_comparison_operator(&token) {
             // Comparison operators: < > = ==
             // < and > return "true"/"false"
-            // = returns "yes"/"no"
+            // = returns "true"/"false"
             // == returns "true"/"false"
             let b = stack.pop().ok_or("Stack is empty, invalid expression")?;
             let a = stack.pop().ok_or("Stack is empty, invalid expression")?;

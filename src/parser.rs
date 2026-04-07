@@ -107,7 +107,7 @@ pub enum PostfixOperator {
 pub enum ComparisonOperator {
     LessThan,        // <
     GreaterThan,     // >
-    Equal,           // = (returns yes/no)
+    Equal,           // = (returns true/false)
     LogicalEqual,    // == (returns true/false)
 }
 
