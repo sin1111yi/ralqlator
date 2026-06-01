@@ -747,6 +747,7 @@ dependencies = [
  "num-traits",
  "rustyline",
  "serde",
+ "serde_json",
  "statrs",
  "toml",
 ]

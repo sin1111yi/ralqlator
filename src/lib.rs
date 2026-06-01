@@ -37,6 +37,7 @@ pub mod calculator;
 pub mod cli;
 pub mod repl;
 pub mod storage;
+pub mod mcp;
 
 // Re-export commonly used types
 pub use error::{CalcError, CalcResult};
@@ -44,3 +45,5 @@ pub use value::Value;
 pub use parser::{AstNode, parse_expression, eval_ast, parse_and_eval};
 pub use token::{Token, tokenize};
 pub use storage::{load_user_data, save_user_data, delete_user_definition};
+pub use calculator::UserConstants;
+pub use operator::is_function;
