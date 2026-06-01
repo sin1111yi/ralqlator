@@ -539,7 +539,54 @@ ralqlator -C
 ralqlator info
 ```
 
-## Testing
+## MCP Server (New in v0.5.0)
+
+ralqlator includes a Model Context Protocol (MCP) server that exposes its calculation capabilities as MCP tools for AI assistants.
+
+### Usage
+
+```bash
+# Run the MCP server (stdio transport)
+ralqlator-mcp
+```
+
+The server reads JSON-RPC 2.0 requests from stdin and writes responses to stdout. Each line is a single request or response.
+
+### Available Tools
+
+| Tool | Description |
+|------|-------------|
+| `calculate` | Evaluate a math expression with exact rational arithmetic. Supports optional `format` parameter (decimal/hex/oct/bin). |
+| `calculate_bitwise` | Evaluate a bitwise expression (integers only). Supports optional `format` parameter. |
+| `list_functions` | List all 50+ built-in math functions with descriptions. |
+| `list_constants` | List built-in (C_PI, C_E) and user-defined constants. |
+| `list_user_definitions` | List all user-defined functions, sequences, and constants. |
+| `create_user_definition` | Create a user-defined function, sequence, or constant. |
+| `delete_user_definition` | Delete a user-defined function or constant by name. |
+| `list_operators` | List all supported operators with descriptions and precedence. |
+
+### Example MCP Call
+
+```json
+{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"calculate","arguments":{"expression":"sin(C_PI/2)"}}}
+```
+
+Response:
+```json
+{"jsonrpc":"2.0","id":1,"result":{"content":[{"type":"text","text":"1"}]}}
+```
+
+### Build
+
+```bash
+cargo build --release --bin ralqlator-mcp
+```
+
+The binary will be at `target/release/ralqlator_mcp`.
+
+### Integration
+
+The MCP server uses the same library API as the CLI — no separate calculation engine. All user-defined functions and constants are loaded from `~/.ralqlator` automatically on each request.
 
 Run all tests:
 
@@ -613,6 +660,8 @@ ralqlator/
 │   └── generate_version.sh
 └── src/
     ├── main.rs             # Program entry point
+    ├── bin/
+    │   └── ralqlator_mcp.rs # MCP server binary (New in v0.5.0)
     ├── cli.rs              # CLI argument definitions
     ├── repl.rs             # Interactive REPL
     ├── calculator.rs       # Calculation orchestration
@@ -626,7 +675,11 @@ ralqlator/
     ├── rational.rs         # Rational number utilities
     ├── error.rs            # Error handling
     ├── storage.rs          # User definition persistence (TOML) **(New in v0.4.0)**
+    ├── mcp.rs              # MCP protocol types and handler (New in v0.5.0)
     └── lib.rs              # Library exports
+
+docs/
+└── mcp-architecture.md    # MCP design document (New in v0.5.0)
 
 tests/
 ├── 01_core_tests.rs        # Core arithmetic, bitwise, comparison
