@@ -282,7 +282,7 @@ pub fn get_builtin_functions() -> Vec<FunctionInfo> { ... }
 
 ```
 --> {"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}
-<-- {"jsonrpc":"2.0","id":1,"result":{"serverInfo":{"name":"ralqlator-mcp","version":"0.4.0"},"capabilities":{"tools":{}}}}
+<-- {"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2024-11-05","serverInfo":{"name":"ralqlator-mcp","version":"0.5.1"},"capabilities":{"tools":{}}}}
 
 --> {"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}
 <-- {"jsonrpc":"2.0","id":2,"result":{"tools":[{"name":"calculate","description":"Evaluate a mathematical expression with exact rational arithmetic","inputSchema":{"type":"object","properties":{"expression":{"type":"string"}},"required":["expression"]}}, ...]}}

@@ -379,7 +379,7 @@ pub fn handle_request(request: JsonRpcRequest) -> Option<JsonValue> {
                 "protocolVersion": "2024-11-05",
                 "serverInfo": {
                     "name": "ralqlator-mcp",
-                    "version": "0.4.0"
+                    "version": env!("CARGO_PKG_VERSION")
                 },
                 "capabilities": {
                     "tools": {}
