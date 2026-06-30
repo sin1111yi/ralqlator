@@ -3,6 +3,7 @@ name = "ralqlator"
 version = "0.4.0"
 edition = "2021"
 build = "build.rs"
+default-run = "ralqlator"
 
 [build-dependencies]
 chrono = "0.4"                 # Date/time handling for build script
