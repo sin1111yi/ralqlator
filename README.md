@@ -544,7 +544,7 @@ ralqlator includes a Model Context Protocol (MCP) server that exposes its calcul
 
 ```bash
 # Run the MCP server (stdio transport)
-ralqlator-mcp
+ralqlator_mcp
 ```
 
 The server reads JSON-RPC 2.0 requests from stdin and writes responses to stdout. Each line is a single request or response.
@@ -573,17 +573,45 @@ Response:
 {"jsonrpc":"2.0","id":1,"result":{"content":[{"type":"text","text":"1"}]}}
 ```
 
-### Build
+### Protocol Compliance
 
-```bash
-cargo build --release --bin ralqlator-mcp
-```
-
-The binary will be at `target/release/ralqlator_mcp`.
+The MCP server implements the MCP protocol version `2024-11-05` over JSON-RPC 2.0 stdio transport. All field names follow camelCase convention (`inputSchema`, `isError`, `protocolVersion`).
 
 ### Integration
 
 The MCP server uses the same library API as the CLI — no separate calculation engine. All user-defined functions and constants are loaded from `~/.ralqlator` automatically on each request.
+
+### opencode Integration
+
+Add the MCP server to your opencode config (`~/.config/opencode/opencode.jsonc` or project `opencode.json`):
+
+```json
+{
+  "mcp": {
+    "ralqlator": {
+      "type": "local",
+      "command": ["ralqlator_mcp"],
+      "enabled": true
+    }
+  }
+}
+```
+
+After a restart, opencode's AI assistant can call ralqlator tools directly for calculations, function lookups, and user-defined definitions.
+
+### Build
+
+```bash
+cargo build --release --bin ralqlator_mcp
+```
+
+The binary will be at `target/release/ralqlator_mcp`.
+
+To install system-wide:
+
+```bash
+cargo install --path . --bin ralqlator_mcp
+```
 
 Run all tests:
 
@@ -641,20 +669,32 @@ The test suite includes **450+ test cases** organized in 10 test files:
 ralqlator/
 ├── Cargo.toml              # Project configuration
 ├── build.rs                # Version info generation from git
+├── opencode.json           # opencode MCP integration config
 ├── README.md               # English documentation
 ├── README_zh.md            # Chinese documentation
-├── TESTING.md              # Testing guide
-├── HELP_UPDATE.md          # Help system documentation
-├── OPTIMIZATION_SUMMARY.md # Optimization summary
-├── COMMIT_MESSAGE.md       # Commit message template
+├── TESTING.md              # Testing guide (English)
+├── TESTING_zh.md           # Testing guide (Chinese)
+├── agent.md                # opencode agent instructions
 ├── benches/                # Performance benchmarks
 │   └── calculator_bench.rs
 ├── fuzz/                   # Fuzzing configuration
 │   ├── Cargo.toml
 │   └── fuzz_targets/
 │       └── parse_expression.rs
-├── scripts/                # Utility scripts
-│   └── generate_version.sh
+├── docs/
+│   └── mcp-architecture.md # MCP design document
+├── tests/
+│   ├── 01_core_tests.rs    # Core arithmetic, bitwise, comparison
+│   ├── 02_functions_tests.rs # Mathematical functions
+│   ├── 03_cli_formats_tests.rs # CLI and number formats
+│   ├── 04_repl_tests.rs    # REPL interactive mode
+│   ├── 05_rational_tests.rs # Rational number operations
+│   ├── 06_error_internal_tests.rs # Error handling and internals
+│   ├── 07_user_defined_tests.rs # User-defined constants
+│   ├── 08_extended_tests.rs # Extended functionality
+│   ├── 09_storage_tests.rs # Persistence storage tests
+│   ├── e2e_integration_tests.rs # End-to-end tests
+│   └── README.md           # Test documentation (English)
 └── src/
     ├── main.rs             # Program entry point
     ├── bin/
@@ -674,22 +714,6 @@ ralqlator/
     ├── storage.rs          # User definition persistence (TOML)
     ├── mcp.rs              # MCP protocol types and handler
     └── lib.rs              # Library exports
-
-docs/
-└── mcp-architecture.md    # MCP design document
-
-tests/
-├── 01_core_tests.rs        # Core arithmetic, bitwise, comparison
-├── 02_functions_tests.rs   # Mathematical functions
-├── 03_cli_formats_tests.rs # CLI and number formats
-├── 04_repl_tests.rs        # REPL interactive mode
-├── 05_rational_tests.rs    # Rational number operations
-├── 06_error_internal_tests.rs # Error handling and internals
-├── 07_user_defined_tests.rs # User-defined constants
-├── 08_extended_tests.rs    # Extended functionality
-├── 09_storage_tests.rs     # Persistence storage tests
-├── e2e_integration_tests.rs # End-to-end tests
-└── README.md               # Test documentation
 ```
 
 ## Examples

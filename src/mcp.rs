@@ -85,7 +85,7 @@ pub const CALCULATION_ERROR: i32 = -32000;
 pub struct ToolDefinition {
     pub name: String,
     pub description: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "inputSchema", skip_serializing_if = "Option::is_none")]
     pub input_schema: Option<JsonValue>,
 }
 
@@ -101,7 +101,7 @@ pub enum ToolContent {
 #[derive(Debug, Serialize)]
 pub struct ToolResult {
     pub content: Vec<ToolContent>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "isError", skip_serializing_if = "Option::is_none")]
     pub is_error: Option<bool>,
 }
 
@@ -376,6 +376,7 @@ pub fn handle_request(request: JsonRpcRequest) -> Option<JsonValue> {
     match request.method.as_str() {
         "initialize" => {
             let result = serde_json::json!({
+                "protocolVersion": "2024-11-05",
                 "serverInfo": {
                     "name": "ralqlator-mcp",
                     "version": "0.4.0"

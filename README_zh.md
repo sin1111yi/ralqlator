@@ -437,22 +437,36 @@ cargo test
 ralqlator/
 ├── Cargo.toml              # 项目配置
 ├── build.rs                # 从 git 生成版本信息
+├── opencode.json           # opencode MCP 集成配置
 ├── README.md               # 英文文档
 ├── README_zh.md            # 中文文档
-├── TESTING.md              # 测试指南
-├── HELP_UPDATE.md          # 帮助系统文档
-├── OPTIMIZATION_SUMMARY.md # 优化总结
-├── COMMIT_MESSAGE.md       # 提交信息模板
+├── TESTING.md              # 测试指南（英文）
+├── TESTING_zh.md           # 测试指南（中文）
+├── agent.md                # opencode agent 指令
 ├── benches/                # 性能基准测试
 │   └── calculator_bench.rs
 ├── fuzz/                   # 模糊测试配置
 │   ├── Cargo.toml
 │   └── fuzz_targets/
 │       └── parse_expression.rs
-├── scripts/                # 工具脚本
-│   └── generate_version.sh
+├── docs/
+│   └── mcp-architecture.md # MCP 设计文档
+├── tests/
+│   ├── 01_core_tests.rs    # 核心算术、位运算、比较
+│   ├── 02_functions_tests.rs   # 数学函数
+│   ├── 03_cli_formats_tests.rs # CLI 和数字格式
+│   ├── 04_repl_tests.rs    # REPL 交互模式
+│   ├── 05_rational_tests.rs    # 有理数运算
+│   ├── 06_error_internal_tests.rs # 错误处理和内部模块
+│   ├── 07_user_defined_tests.rs # 用户定义常量
+│   ├── 08_extended_tests.rs    # 扩展功能
+│   ├── 09_storage_tests.rs     # 持久化存储测试
+│   ├── e2e_integration_tests.rs # 端到端测试
+│   └── README.md           # 测试文档（英文）
 └── src/
     ├── main.rs             # 程序入口
+    ├── bin/
+    │   └── ralqlator_mcp.rs # MCP 服务器
     ├── cli.rs              # CLI 参数定义
     ├── repl.rs             # 交互式 REPL
     ├── calculator.rs       # 计算编排
@@ -461,25 +475,13 @@ ralqlator/
     ├── operator.rs         # 运算符定义
     ├── shunting_yard.rs    # 中缀转后缀算法
     ├── token.rs            # 词法分析
-    ├── parser.rs           # AST 解析器（递归下降）[新增]
-    ├── value.rs            # 统一 Value 类型 [新增]
-    ├── rational.rs         # 有理数工具 [新增]
-    ├── error.rs            # 错误处理 [新增]
-    ├── storage.rs          # 用户定义持久化存储 (TOML) **(v0.4.0 新增)**
-    └── lib.rs              # 库导出 [新增]
-
-tests/
-├── 01_core_tests.rs        # 核心算术、位运算、比较
-├── 02_functions_tests.rs   # 数学函数
-├── 03_cli_formats_tests.rs # CLI 和数字格式
-├── 04_repl_tests.rs        # REPL 交互模式
-├── 05_rational_tests.rs    # 有理数运算
-├── 06_error_internal_tests.rs # 错误处理和内部模块
-├── 07_user_defined_tests.rs # 用户定义常量
-├── 08_extended_tests.rs    # 扩展功能
-├── 09_storage_tests.rs     # 持久化存储测试 **(v0.4.0 新增)**
-├── e2e_integration_tests.rs # 端到端测试
-└── README.md               # 测试文档
+    ├── parser.rs           # AST 解析器（递归下降）
+    ├── value.rs            # 统一 Value 类型
+    ├── rational.rs         # 有理数工具
+    ├── error.rs            # 错误处理
+    ├── storage.rs          # 用户定义持久化存储 (TOML)
+    ├── mcp.rs              # MCP 协议类型与处理器
+    └── lib.rs              # 库导出
 ```
 
 ## 示例
@@ -573,6 +575,72 @@ ralqlator
 > help operators
 > help functions
 > help create
+```
+
+## MCP 服务器
+
+ralqlator 包含一个 Model Context Protocol (MCP) 服务器，通过 MCP 工具向 AI 助手暴露计算能力。
+
+### 使用
+
+```bash
+# 运行 MCP 服务器（stdio 传输）
+ralqlator_mcp
+```
+
+服务器从 stdin 读取 JSON-RPC 2.0 请求，将响应写入 stdout。每行一个请求或响应。
+
+### 可用工具
+
+| 工具 | 描述 |
+|------|------|
+| `calculate` | 使用精确有理数运算计算数学表达式。支持可选的 `format` 参数（decimal/hex/oct/bin）。 |
+| `calculate_bitwise` | 计算位运算表达式（仅限整数）。支持可选的 `format` 参数。 |
+| `list_functions` | 列出全部 50+ 个内置数学函数及描述。 |
+| `list_constants` | 列出内置常量（C_PI, C_E）及用户自定义常量。 |
+| `list_user_definitions` | 列出所有用户自定义的函数、数列和常量。 |
+| `create_user_definition` | 创建用户自定义的函数、数列或常量。 |
+| `delete_user_definition` | 按名称删除用户自定义的函数或常量。 |
+| `list_operators` | 列出所有支持的运算符及描述和优先级。 |
+
+### 协议合规
+
+MCP 服务器实现了 MCP 协议版本 `2024-11-05`，基于 JSON-RPC 2.0 stdio 传输。所有字段名遵循 camelCase 规范（`inputSchema`、`isError`、`protocolVersion`）。
+
+### 集成
+
+MCP 服务器与 CLI 使用相同的库 API —— 没有独立的计算引擎。所有用户定义的函数和常量在每次请求时从 `~/.ralqlator` 自动加载。
+
+### opencode 集成
+
+将 MCP 服务器添加到 opencode 配置中（`~/.config/opencode/opencode.jsonc` 或项目 `opencode.json`）：
+
+```json
+{
+  "mcp": {
+    "ralqlator": {
+      "type": "local",
+      "command": ["ralqlator_mcp"],
+      "enabled": true
+    }
+  }
+}
+```
+
+重启后，opencode 的 AI 助手可以直接调用 ralqlator 工具进行计算、函数查询和用户定义管理。
+
+### 编译
+
+```bash
+cargo build --release --bin ralqlator_mcp
+```
+
+二进制文件在 `target/release/ralqlator_mcp`。
+
+系统级安装：
+
+```bash
+cargo install --path . --bin ralqlator_mcp
 ```
 
 ## 许可证
