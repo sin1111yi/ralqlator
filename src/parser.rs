@@ -598,18 +598,19 @@ fn eval_function_call(
         let funcs = user_functions.lock().unwrap();
         if let Some((params, expr)) = funcs.get(name) {
             // Expand function with arguments
-            let mut expanded_expr = expr.clone();
-            for (param, arg) in params.iter().zip(args.iter()) {
-                // Evaluate argument first
-                let arg_val = eval_ast(arg, user_functions, user_constants)?;
-                let arg_str = match arg_val {
-                    Value::Rational(ref r) => format!("{}", r),
-                    Value::Integer(n) => n.to_string(),
-                    Value::Float(f) => f.to_string(),
-                    Value::Boolean(b) => if b { "1" } else { "0" }.to_string(),
-                };
-                expanded_expr = expanded_expr.replace(param, &arg_str);
-            }
+            let arg_strings: Vec<String> = args
+                .iter()
+                .map(|arg| {
+                    eval_ast(arg, user_functions, user_constants).map(|arg_val| match arg_val {
+                        Value::Rational(ref r) => format!("{}", r),
+                        Value::Integer(n) => n.to_string(),
+                        Value::Float(f) => f.to_string(),
+                        Value::Boolean(b) => if b { "1" } else { "0" }.to_string(),
+                    })
+                })
+                .collect::<CalcResult<Vec<String>>>()?;
+            let arg_refs: Vec<&str> = arg_strings.iter().map(|s| s.as_str()).collect();
+            let expanded_expr = crate::calculator::replace_parameters(expr, params, &arg_refs);
             // Parse and evaluate expanded expression
             let expanded_ast = parse_expression(&expanded_expr, false)?;
             return eval_ast(&expanded_ast, user_functions, user_constants);

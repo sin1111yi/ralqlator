@@ -227,6 +227,54 @@ fn replace_word_boundary(text: &str, word: &str, replacement: &str) -> String {
     result
 }
 
+/// Replace function parameters with arguments in a single pass.
+///
+/// Unlike repeated `str::replace`, this only matches whole identifiers and
+/// does not rescan text inserted for an earlier parameter. That prevents a
+/// parameter such as `t` from rewriting the `t` in `tau(...)`, and prevents
+/// `f(a, b) = a + b` called as `f(b, 1)` from cascading into `1 + 1`.
+pub(crate) fn replace_parameters(expr: &str, params: &[String], args: &[&str]) -> String {
+    let mut result = String::with_capacity(expr.len());
+    let mut i = 0;
+
+    while i < expr.len() {
+        let c = expr[i..].chars().next().unwrap();
+
+        // An identifier starts with a letter or underscore and is not part of
+        // a number literal (e.g. the `e` in `1.7e-8`).
+        let starts_identifier = (c.is_alphabetic() || c == '_')
+            && !expr[..i]
+                .chars()
+                .next_back()
+                .is_some_and(|prev| prev.is_alphanumeric() || prev == '.');
+
+        if starts_identifier {
+            let start = i;
+            let mut end = i + c.len_utf8();
+            while end < expr.len() {
+                let ch = expr[end..].chars().next().unwrap();
+                if ch.is_alphanumeric() || ch == '_' {
+                    end += ch.len_utf8();
+                } else {
+                    break;
+                }
+            }
+
+            let word = &expr[start..end];
+            match params.iter().position(|param| param == word) {
+                Some(index) => result.push_str(args[index]),
+                None => result.push_str(word),
+            }
+            i = end;
+        } else {
+            result.push(c);
+            i += c.len_utf8();
+        }
+    }
+
+    result
+}
+
 /// Find all occurrences of a word in text
 fn find_word_occurrences(text: &str, word: &str) -> Vec<(usize, usize)> {
     let mut positions = Vec::new();
@@ -323,11 +371,9 @@ pub fn expand_user_functions(
                     ));
                 }
 
-                // Replace parameters with arguments
-                let mut expanded_expr = expr.clone();
-                for (param, arg) in params.iter().zip(args.iter()) {
-                    expanded_expr = expanded_expr.replace(param, arg);
-                }
+                // Replace parameters in one pass so parameter names cannot
+                // rewrite identifiers inside the function body.
+                let expanded_expr = replace_parameters(expr, params, &args);
 
                 // Wrap expanded expression in parentheses to preserve order of operations
                 result.replace_range(start..=end, &format!("({})", expanded_expr));
@@ -529,4 +575,70 @@ pub fn calculate_bitwise(expression: &str) -> Result<i64, String> {
     let tokens_resolved = resolve_constants_legacy(&string_tokens)?;
     let postfix = infix_to_postfix_bitwise(tokens_resolved);
     eval_postfix_bitwise(postfix)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn user_functions(defs: &[(&str, &[&str], &str)]) -> UserFunctions {
+        let mut map = HashMap::new();
+        for (name, params, expr) in defs {
+            map.insert(
+                name.to_string(),
+                (
+                    params.iter().map(|p| p.to_string()).collect(),
+                    expr.to_string(),
+                ),
+            );
+        }
+        Arc::new(Mutex::new(map))
+    }
+
+    fn empty_constants() -> UserConstants {
+        Arc::new(Mutex::new(HashMap::new()))
+    }
+
+    #[test]
+    fn parameter_substitution_does_not_rewrite_identifiers() {
+        let funcs = user_functions(&[
+            ("R0", &["ac"], "0.462 + 0.03 * ln(1 + ac)"),
+            ("tau", &["ac"], "2.71 * (1 + 0.15 * ln(1 + ac))"),
+            (
+                "R2",
+                &["t", "ac"],
+                "R0(ac) + (1 - R0(ac)) * pow(C_E, -t / tau(ac))",
+            ),
+            ("t", &["a"], "tan(a)"),
+        ]);
+
+        let expanded = expand_user_functions("R2(0, 1)", &funcs).unwrap();
+        assert!(!expanded.contains("0au"), "unexpected expansion: {expanded}");
+        assert!(!expanded.contains("au("), "unexpected expansion: {expanded}");
+
+        let constants = empty_constants();
+        let value = calculate_with_functions("R2(0, 1)", &funcs, &constants).unwrap();
+        assert!((value - 1.0).abs() < 1e-12, "R2(0, 1) = {value}");
+
+        let value = calculate_with_functions("R2(10, 0)", &funcs, &constants).unwrap();
+        let expected = 0.462 + 0.538 * (-10.0f64 / 2.71).exp();
+        assert!((value - expected).abs() < 1e-12, "R2(10, 0) = {value}");
+
+        let value = calculate_with_functions("t(1)", &funcs, &constants).unwrap();
+        assert!((value - 1.0f64.tan()).abs() < 1e-12, "t(1) = {value}");
+    }
+
+    #[test]
+    fn parameter_substitution_is_simultaneous() {
+        let funcs = user_functions(&[("f", &["a", "b"], "a + b")]);
+        let expanded = expand_user_functions("f(b, 1)", &funcs).unwrap();
+        assert_eq!(expanded, "(b + 1)");
+    }
+
+    #[test]
+    fn parameter_named_e_does_not_split_number_literals() {
+        let funcs = user_functions(&[("f", &["e"], "e * 1.7e-8")]);
+        let expanded = expand_user_functions("f(2)", &funcs).unwrap();
+        assert_eq!(expanded, "(2 * 1.7e-8)");
+    }
 }

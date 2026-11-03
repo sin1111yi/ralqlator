@@ -29,6 +29,8 @@ use crate::operator::{
 // Import BigInt functions directly for evaluator
 use crate::functions;
 
+use std::collections::HashMap;
+
 /// Special result values for comparison operators
 /// These are special values that can be detected and formatted specially
 /// Using large negative numbers that are unlikely to occur in normal calculations
@@ -51,6 +53,7 @@ pub fn format_comparison_result(result: f64) -> Option<String> {
 pub fn eval_postfix(postfix: Vec<String>) -> Result<f64, String> {
     let mut stack: Vec<f64> = Vec::new();
     let mut arg_stack: Vec<Vec<f64>> = Vec::new();
+    let mut arg_frames: HashMap<usize, Vec<f64>> = HashMap::new();
 
     for token in postfix {
         if token.starts_with("ERROR:") {
@@ -60,6 +63,15 @@ pub fn eval_postfix(postfix: Vec<String>) -> Result<f64, String> {
             // Comma: move current stack top to arg_stack as a completed argument
             if let Some(val) = stack.pop() {
                 arg_stack.push(vec![val]);
+            }
+        } else if let Some(depth) = token.strip_prefix(',') {
+            // Depth-tagged separator: store the completed argument in this
+            // call's own frame so enclosing calls keep their arguments.
+            let depth: usize = depth
+                .parse()
+                .map_err(|_| "Invalid argument separator".to_string())?;
+            if let Some(val) = stack.pop() {
+                arg_frames.entry(depth).or_default().push(val);
             }
         } else if is_postfix_unary_operator(&token) {
             // Postfix unary operator (e.g., !)
@@ -120,8 +132,21 @@ pub fn eval_postfix(postfix: Vec<String>) -> Result<f64, String> {
                 _ => return Err(format!("Unknown operator: {}", token)),
             };
             stack.push(result);
-        } else if is_function(&token) {
-            // Collect arguments: last arg is on stack, previous args are in arg_stack
+        } else if is_function(&token)
+            || token
+                .rsplit_once('@')
+                .is_some_and(|(name, _)| is_function(name))
+        {
+            let (name, depth) = match token.rsplit_once('@') {
+                Some((name, depth)) if is_function(name) => {
+                    let depth = depth
+                        .parse::<usize>()
+                        .map_err(|_| "Invalid function call token".to_string())?;
+                    (name, Some(depth))
+                }
+                _ => (token.as_str(), None),
+            };
+
             let mut args: Vec<f64> = Vec::new();
 
             // Get the last argument from stack
@@ -129,15 +154,23 @@ pub fn eval_postfix(postfix: Vec<String>) -> Result<f64, String> {
                 args.push(val);
             }
 
-            // Get previous arguments from arg_stack (in reverse order)
-            while let Some(mut arg_list) = arg_stack.pop() {
-                args.append(&mut arg_list);
+            if let Some(depth) = depth {
+                // Earlier arguments are stored in this call's own frame.
+                if let Some(mut earlier) = arg_frames.remove(&depth) {
+                    earlier.append(&mut args);
+                    args = earlier;
+                }
+            } else {
+                // Get previous arguments from arg_stack (in reverse order)
+                while let Some(mut arg_list) = arg_stack.pop() {
+                    args.append(&mut arg_list);
+                }
+
+                // Reverse to get correct order: args were collected from last to first
+                args.reverse();
             }
 
-            // Reverse to get correct order: args were collected from last to first
-            args.reverse();
-
-            let result = match token.as_str() {
+            let result = match name {
                 "lg" => match args.len() {
                     1 => eval_lg(args[0]),
                     2 => eval_log_base(args[1], args[0]),
@@ -392,7 +425,7 @@ pub fn eval_postfix(postfix: Vec<String>) -> Result<f64, String> {
                         args.len()
                     )),
                 },
-                _ => return Err(format!("Unknown function: {}", token)),
+                _ => return Err(format!("Unknown function: {}", name)),
             }?;
             stack.push(result);
         } else {
@@ -465,5 +498,38 @@ pub fn eval_postfix_bitwise(postfix: Vec<String>) -> Result<i64, String> {
         Ok(stack[0])
     } else {
         Err("Invalid expression: multiple values remaining in stack".to_string())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::shunting_yard::infix_to_postfix;
+    use crate::token::{tokenize, Token};
+
+    fn eval(expression: &str) -> Result<f64, String> {
+        let tokens: Vec<String> = tokenize(expression, false)
+            .iter()
+            .filter_map(|token| match token {
+                Token::Number(s) | Token::Identifier(s) | Token::Operator(s) => Some(s.clone()),
+                Token::LParen => Some("(".to_string()),
+                Token::RParen => Some(")".to_string()),
+                Token::Comma => Some(",".to_string()),
+                Token::Eof => None,
+            })
+            .collect();
+        eval_postfix(infix_to_postfix(tokens))
+    }
+
+    #[test]
+    fn nested_function_arguments_are_scoped_per_call() {
+        assert_eq!(eval("pow(2, sum(1, 2))").unwrap(), 8.0);
+        assert_eq!(eval("atan2(1, 1)").unwrap(), std::f64::consts::FRAC_PI_4);
+    }
+
+    #[test]
+    fn wrong_argument_count_is_reported() {
+        assert!(eval("ln(1, 2)").is_err());
+        assert!(eval("pow(2)").is_err());
     }
 }

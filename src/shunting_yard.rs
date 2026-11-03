@@ -107,7 +107,9 @@ fn process_standard_token(token: String, sy: &mut ShuntingYard) {
                 break;
             }
         }
-        sy.output.push(token);
+        // Tag the separator with its parenthesis depth so the evaluator can
+        // keep arguments of nested calls separate.
+        sy.output.push(format!(",{}", sy.paren_count));
         sy.expect_operand = true;
     } else if token == ")" {
         if sy.paren_count == 0 {
@@ -123,10 +125,13 @@ fn process_standard_token(token: String, sy: &mut ShuntingYard) {
             }
             sy.output.push(top);
         }
-        // Pop function if present
+        // Pop function if present. The tag records this call's parenthesis
+        // depth so its arguments can be collected independently of any
+        // enclosing call.
         if let Some(top) = sy.op_stack.last() {
             if is_function(top) {
-                sy.output.push(sy.op_stack.pop().unwrap());
+                let name = sy.op_stack.pop().unwrap();
+                sy.output.push(format!("{}@{}", name, sy.paren_count + 1));
             }
         }
         sy.expect_operand = false;
